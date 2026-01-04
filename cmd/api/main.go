@@ -1,0 +1,51 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"rires-be/config"
+	"rires-be/internal/routes"
+	"rires-be/pkg/database"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+)
+
+func main() {
+	// Load configuration
+	if err := config.LoadConfig(); err != nil {
+		log.Fatal("Failed to load config:", err)
+	}
+
+	// Connect to database
+	if err := database.Connect(config.AppConfig.GetDSN()); err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+	defer database.CloseDB()
+
+	// Create Fiber app
+	app := fiber.New(fiber.Config{
+		AppName: config.AppConfig.AppName,
+	})
+
+	// Middleware
+	app.Use(recover.New()) // Recover from panics
+	app.Use(logger.New())  // Log requests
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+	}))
+
+	// Setup routes
+	routes.Setup(app)
+
+	// Start server
+	port := fmt.Sprintf(":%s", config.AppConfig.AppPort)
+	log.Printf("Server starting on port %s", port)
+	if err := app.Listen(port); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
+}
