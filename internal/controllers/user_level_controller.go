@@ -180,7 +180,7 @@ func (ctrl *UserLevelController) Create(c *fiber.Ctx) error {
 		Status:       req.Status,
 		Hapus:        0,
 		TglInsert:    &now,
-		UserUpdate:   "1", // User ID as string (TODO: Get from JWT token)
+		UserUpdate: strconv.Itoa(int(utils.GetCurrentUserID(c))),
 	}
 
 	if err := database.DB.Create(&userLevel).Error; err != nil {
