@@ -5,9 +5,13 @@ import (
 	"rires-be/pkg/database"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 )
 
 func Setup(app *fiber.App) {
+	// Swagger documentation
+	app.Get("/swagger/*", swagger.HandlerDefault)
+
 	// Welcome route
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -16,7 +20,7 @@ func Setup(app *fiber.App) {
 			"status":  "running",
 		})
 	})
-	
+
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
 		// Check database connection
@@ -55,6 +59,19 @@ func Setup(app *fiber.App) {
 		auth.Post("/login/admin", authController.LoginAdmin)
 		auth.Post("/login/mahasiswa", authController.LoginMahasiswa)
 		auth.Post("/login/pegawai", authController.LoginPegawai)
+
+		// GET endpoints for browser testing (DEVELOPMENT ONLY - NOT SECURE!)
+		auth.Get("/test/pegawai/:username/:password", func(c *fiber.Ctx) error {
+			username := c.Params("username")
+			password := c.Params("password")
+			
+			return c.JSON(fiber.Map{
+				"warning": "This is for testing only - NOT SECURE!",
+				"username": username,
+				"password": password,
+				"message": "Use POST /api/v1/auth/login/pegawai with JSON body for actual login",
+			})
+		})
 	}
 
 	// Protected routes (akan ditambahkan nanti dengan middleware JWT)

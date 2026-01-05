@@ -1,0 +1,202 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: support@rires.com
+    name: API Support
+  description: |-
+    API untuk sistem PKM (Program Kreativitas Mahasiswa) UMM
+    Backend yang mendukung pengajuan, review, dan manajemen PKM
+  title: Student RIRES Backend API
+  version: "1.0"
+paths:
+  /auth/login/admin:
+    post:
+      consumes:
+      - application/json
+      description: Login untuk administrator dari database lokal
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          properties:
+            password:
+              type: string
+            username:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                properties:
+                  expires_in:
+                    type: integer
+                  token:
+                    type: string
+                  user:
+                    type: object
+                  user_type:
+                    type: string
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Login Admin
+      tags:
+      - Authentication
+  /auth/login/mahasiswa:
+    post:
+      consumes:
+      - application/json
+      description: Login mahasiswa menggunakan NIM via API external
+      parameters:
+      - description: NIM and Password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          properties:
+            password:
+              type: string
+            username:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                properties:
+                  expires_in:
+                    type: integer
+                  token:
+                    type: string
+                  user:
+                    type: object
+                  user_type:
+                    type: string
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Login Mahasiswa
+      tags:
+      - Authentication
+  /auth/login/pegawai:
+    post:
+      consumes:
+      - application/json
+      description: Login pegawai/reviewer menggunakan email via API external
+      parameters:
+      - description: Email and Password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          properties:
+            password:
+              type: string
+            username:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                properties:
+                  expires_in:
+                    type: integer
+                  token:
+                    type: string
+                  user:
+                    type: object
+                  user_type:
+                    type: string
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Login Pegawai
+      tags:
+      - Authentication
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

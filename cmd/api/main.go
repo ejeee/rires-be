@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+
 	"rires-be/config"
+	_ "rires-be/docs" // Swagger docs
 	"rires-be/internal/routes"
 	"rires-be/pkg/database"
 
@@ -12,6 +14,22 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
+
+// @title Student RIRES Backend API
+// @version 1.0
+// @description API untuk sistem PKM (Program Kreativitas Mahasiswa) UMM
+// @description Backend yang mendukung pengajuan, review, dan manajemen PKM
+
+// @contact.name API Support
+// @contact.email support@rires.com
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token
 
 func main() {
 	// Load configuration
