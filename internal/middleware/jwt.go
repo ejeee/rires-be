@@ -1,0 +1,108 @@
+package middleware
+
+import (
+	"rires-be/pkg/utils"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+// JWTAuth adalah middleware untuk validasi JWT token
+func JWTAuth() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Get Authorization header
+		authHeader := c.Get("Authorization")
+		if authHeader == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Missing authorization header",
+			})
+		}
+
+		// Check if it starts with "Bearer "
+		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Invalid authorization header format. Use: Bearer <token>",
+			})
+		}
+
+		// Extract token
+		tokenString := authHeader[7:]
+
+		// Validate token
+		claims, err := utils.ValidateToken(tokenString)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Invalid or expired token",
+			})
+		}
+
+		// Set user info to context
+		c.Locals("user_id", claims.UserID)
+		c.Locals("username", claims.Username)
+		c.Locals("email", claims.Email)
+		c.Locals("user_type", claims.UserType)
+		c.Locals("user_data", claims.UserData)
+		c.Locals("claims", claims)
+
+		// Continue to next handler
+		return c.Next()
+	}
+}
+
+// RequireAdmin adalah middleware untuk memastikan user adalah admin
+func RequireAdmin() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userType := c.Locals("user_type")
+		if userType != "admin" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"success": false,
+				"message": "Access denied. Admin only.",
+			})
+		}
+		return c.Next()
+	}
+}
+
+// RequireMahasiswa adalah middleware untuk memastikan user adalah mahasiswa
+func RequireMahasiswa() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userType := c.Locals("user_type")
+		if userType != "mahasiswa" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"success": false,
+				"message": "Access denied. Mahasiswa only.",
+			})
+		}
+		return c.Next()
+	}
+}
+
+// RequireReviewer adalah middleware untuk memastikan user adalah reviewer (pegawai)
+func RequireReviewer() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userType := c.Locals("user_type")
+		if userType != "pegawai" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"success": false,
+				"message": "Access denied. Reviewer only.",
+			})
+		}
+		return c.Next()
+	}
+}
+
+// RequireAdminOrReviewer untuk route yang bisa diakses admin atau reviewer
+func RequireAdminOrReviewer() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userType := c.Locals("user_type")
+		if userType != "admin" && userType != "pegawai" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"success": false,
+				"message": "Access denied. Admin or Reviewer only.",
+			})
+		}
+		return c.Next()
+	}
+}
