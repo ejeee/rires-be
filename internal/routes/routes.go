@@ -74,6 +74,17 @@ func Setup(app *fiber.App) {
 		})
 	}
 
+	// User Level routes (Master Data)
+	userLevelController := controllers.NewUserLevelController()
+	userLevels := api.Group("/user-levels")
+	{
+		userLevels.Get("/", userLevelController.GetList)
+		userLevels.Get("/:id", userLevelController.GetByID)
+		userLevels.Post("/", userLevelController.Create)
+		userLevels.Put("/:id", userLevelController.Update)
+		userLevels.Delete("/:id", userLevelController.Delete)
+	}
+
 	// Protected routes (akan ditambahkan nanti dengan middleware JWT)
 	// protected := api.Group("/", middleware.JWTProtected())
 	// {

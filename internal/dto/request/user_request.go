@@ -1,4 +1,4 @@
-package dto
+package request
 
 // LoginRequest adalah struktur untuk request login
 type LoginRequest struct {

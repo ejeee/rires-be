@@ -1,4 +1,69 @@
 basePath: /api/v1
+definitions:
+  request.CreateUserLevelRequest:
+    properties:
+      nama_level:
+        maxLength: 100
+        minLength: 3
+        type: string
+      status:
+        description: 1=active, 2=inactive
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - nama_level
+    - status
+    type: object
+  request.UpdateUserLevelRequest:
+    properties:
+      nama_level:
+        maxLength: 100
+        minLength: 3
+        type: string
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - nama_level
+    - status
+    type: object
+  response.UserLevelListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.UserLevelResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.UserLevelResponse:
+    properties:
+      id:
+        type: integer
+      nama_level:
+        type: string
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      user_update:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -193,6 +258,230 @@ paths:
       summary: Login Pegawai
       tags:
       - Authentication
+  /user-levels:
+    get:
+      consumes:
+      - application/json
+      description: Get list of user levels with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by nama_level
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserLevelListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List User Levels
+      tags:
+      - User Level
+    post:
+      consumes:
+      - application/json
+      description: Create new user level
+      parameters:
+      - description: User Level Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserLevelRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserLevelResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create User Level
+      tags:
+      - User Level
+  /user-levels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete user level
+      parameters:
+      - description: User Level ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete User Level
+      tags:
+      - User Level
+    get:
+      consumes:
+      - application/json
+      description: Get user level detail by ID
+      parameters:
+      - description: User Level ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserLevelResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get User Level by ID
+      tags:
+      - User Level
+    put:
+      consumes:
+      - application/json
+      description: Update existing user level
+      parameters:
+      - description: User Level ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User Level Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserLevelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserLevelResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update User Level
+      tags:
+      - User Level
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token
