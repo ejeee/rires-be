@@ -46,6 +46,35 @@ definitions:
     - status
     - url_menu
     type: object
+  request.CreateStatusReviewRequest:
+    properties:
+      kode_status:
+        maxLength: 20
+        minLength: 2
+        type: string
+      nama_status:
+        maxLength: 50
+        minLength: 3
+        type: string
+      status:
+        description: 1=active, 2=inactive
+        enum:
+        - 1
+        - 2
+        type: integer
+      urutan:
+        minimum: 0
+        type: integer
+      warna:
+        description: gray, blue, green, yellow, red, etc
+        maxLength: 20
+        type: string
+    required:
+    - kode_status
+    - nama_status
+    - status
+    - warna
+    type: object
   request.CreateUserLevelRequest:
     properties:
       nama_level:
@@ -103,6 +132,33 @@ definitions:
     - nama_menu
     - status
     - url_menu
+    type: object
+  request.UpdateStatusReviewRequest:
+    properties:
+      kode_status:
+        maxLength: 20
+        minLength: 2
+        type: string
+      nama_status:
+        maxLength: 50
+        minLength: 3
+        type: string
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+      urutan:
+        minimum: 0
+        type: integer
+      warna:
+        maxLength: 20
+        type: string
+    required:
+    - kode_status
+    - nama_status
+    - status
+    - warna
     type: object
   request.UpdateUserLevelRequest:
     properties:
@@ -215,6 +271,45 @@ definitions:
         type: string
       urutan:
         type: integer
+    type: object
+  response.StatusReviewListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.StatusReviewResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.StatusReviewResponse:
+    properties:
+      id:
+        type: integer
+      kode_status:
+        type: string
+      nama_status:
+        type: string
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      urutan:
+        type: integer
+      user_update:
+        type: string
+      warna:
+        type: string
     type: object
   response.UserLevelListResponse:
     properties:
@@ -963,6 +1058,230 @@ paths:
       summary: Get Menu Tree
       tags:
       - Menu
+  /status-review:
+    get:
+      consumes:
+      - application/json
+      description: Get list of status review with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by nama_status or kode_status
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.StatusReviewListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Status Review
+      tags:
+      - Status Review
+    post:
+      consumes:
+      - application/json
+      description: Create new status review
+      parameters:
+      - description: Status Review Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateStatusReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.StatusReviewResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Status Review
+      tags:
+      - Status Review
+  /status-review/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete status review
+      parameters:
+      - description: Status Review ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Status Review
+      tags:
+      - Status Review
+    get:
+      consumes:
+      - application/json
+      description: Get status review detail by ID
+      parameters:
+      - description: Status Review ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.StatusReviewResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Status Review by ID
+      tags:
+      - Status Review
+    put:
+      consumes:
+      - application/json
+      description: Update existing status review
+      parameters:
+      - description: Status Review ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status Review Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateStatusReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.StatusReviewResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Status Review
+      tags:
+      - Status Review
   /user-levels:
     get:
       consumes:

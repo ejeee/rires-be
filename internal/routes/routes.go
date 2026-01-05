@@ -86,7 +86,7 @@ func Setup(app *fiber.App) {
 		userLevels.Delete("/:id", userLevelController.Delete)
 	}
 
-		// Menu routes (Master Data)
+	// Menu routes (Master Data)
 	menuController := controllers.NewMenuController()
 	menus := api.Group("/menus")
 	{
@@ -98,7 +98,7 @@ func Setup(app *fiber.App) {
 		menus.Delete("/:id", menuController.Delete)
 	}
 
-		// Kategori PKM routes (Master Data)
+	// Kategori PKM routes (Master Data)
 	kategoriPKMController := controllers.NewKategoriPKMController()
 	kategoriPKM := api.Group("/kategori-pkm")
 	{
@@ -107,6 +107,17 @@ func Setup(app *fiber.App) {
 		kategoriPKM.Post("/", kategoriPKMController.Create)
 		kategoriPKM.Put("/:id", kategoriPKMController.Update)
 		kategoriPKM.Delete("/:id", kategoriPKMController.Delete)
+	}
+
+	// Status Review routes (Master Data)
+	statusReviewController := controllers.NewStatusReviewController()
+	statusReview := api.Group("/status-review")
+	{
+		statusReview.Get("/", statusReviewController.GetList)
+		statusReview.Get("/:id", statusReviewController.GetByID)
+		statusReview.Post("/", statusReviewController.Create)
+		statusReview.Put("/:id", statusReviewController.Update)
+		statusReview.Delete("/:id", statusReviewController.Delete)
 	}
 	
 	// Protected routes (akan ditambahkan nanti dengan middleware JWT)
