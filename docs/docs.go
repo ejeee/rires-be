@@ -1124,6 +1124,427 @@ const docTemplate = `{
                 }
             }
         },
+        "/parameter-form": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of parameter form with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parameter Form"
+                ],
+                "summary": "List Parameter Form",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by nama_parameter or label",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by kategori_id",
+                        "name": "kategori_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ParameterFormListResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create new parameter form",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parameter Form"
+                ],
+                "summary": "Create Parameter Form",
+                "parameters": [
+                    {
+                        "description": "Parameter Form Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateParameterFormRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ParameterFormResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/parameter-form/kategori/{kategori_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all parameters for specific kategori (for dynamic form rendering)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parameter Form"
+                ],
+                "summary": "Get Parameter Form by Kategori",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Kategori PKM ID",
+                        "name": "kategori_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ParameterFormByKategoriResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/parameter-form/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get parameter form detail by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parameter Form"
+                ],
+                "summary": "Get Parameter Form by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Parameter Form ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ParameterFormResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing parameter form",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parameter Form"
+                ],
+                "summary": "Update Parameter Form",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Parameter Form ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Parameter Form Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateParameterFormRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ParameterFormResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft delete parameter form",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parameter Form"
+                ],
+                "summary": "Delete Parameter Form",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Parameter Form ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/status-review": {
             "get": {
                 "security": [
@@ -1829,6 +2250,447 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of users with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "List Users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by nama_user or username",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by level_user",
+                        "name": "level_user",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.UserListResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create new user with hashed password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Create User",
+                "parameters": [
+                    {
+                        "description": "User Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.UserResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get user detail by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Get User by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.UserResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing user (without password)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Update User",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.UserResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft delete user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Delete User",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/reset-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reset user password (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Reset User Password",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1894,6 +2756,61 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateParameterFormRequest": {
+            "type": "object",
+            "required": [
+                "kategori_id",
+                "label",
+                "nama_parameter",
+                "status",
+                "tipe_input"
+            ],
+            "properties": {
+                "help_text": {
+                    "type": "string"
+                },
+                "kategori_id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3
+                },
+                "nama_parameter": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "opsi": {
+                    "description": "JSON string for radio/select options",
+                    "type": "string"
+                },
+                "placeholder": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "1=active, 2=inactive",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "tipe_input": {
+                    "description": "text, textarea, number, file, radio, select, etc",
+                    "type": "string"
+                },
+                "urutan": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "validasi": {
+                    "description": "JSON string",
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateStatusReviewRequest": {
             "type": "object",
             "required": [
@@ -1951,6 +2868,54 @@ const docTemplate = `{
                         1,
                         2
                     ]
+                }
+            }
+        },
+        "request.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "level_user",
+                "nama_user",
+                "password",
+                "status",
+                "username"
+            ],
+            "properties": {
+                "level_user": {
+                    "type": "integer"
+                },
+                "nama_user": {
+                    "type": "string",
+                    "minLength": 3
+                },
+                "password": {
+                    "description": "Plain password, akan di-hash",
+                    "type": "string",
+                    "minLength": 6
+                },
+                "status": {
+                    "description": "1=active, 2=inactive",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "username": {
+                    "type": "string",
+                    "minLength": 3
+                }
+            }
+        },
+        "request.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
@@ -2012,6 +2977,58 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateParameterFormRequest": {
+            "type": "object",
+            "required": [
+                "kategori_id",
+                "label",
+                "nama_parameter",
+                "status",
+                "tipe_input"
+            ],
+            "properties": {
+                "help_text": {
+                    "type": "string"
+                },
+                "kategori_id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3
+                },
+                "nama_parameter": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "opsi": {
+                    "description": "JSON string for radio/select options",
+                    "type": "string"
+                },
+                "placeholder": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "tipe_input": {
+                    "type": "string"
+                },
+                "urutan": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "validasi": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateStatusReviewRequest": {
             "type": "object",
             "required": [
@@ -2066,6 +3083,35 @@ const docTemplate = `{
                         1,
                         2
                     ]
+                }
+            }
+        },
+        "request.UpdateUserRequest": {
+            "type": "object",
+            "required": [
+                "level_user",
+                "nama_user",
+                "status",
+                "username"
+            ],
+            "properties": {
+                "level_user": {
+                    "type": "integer"
+                },
+                "nama_user": {
+                    "type": "string",
+                    "minLength": 3
+                },
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "username": {
+                    "type": "string",
+                    "minLength": 3
                 }
             }
         },
@@ -2216,6 +3262,103 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ParameterFormByKategoriResponse": {
+            "type": "object",
+            "properties": {
+                "kategori_id": {
+                    "type": "integer"
+                },
+                "nama_kategori": {
+                    "type": "string"
+                },
+                "parameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParameterFormResponse"
+                    }
+                }
+            }
+        },
+        "response.ParameterFormListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParameterFormResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ParameterFormResponse": {
+            "type": "object",
+            "properties": {
+                "help_text": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kategori_id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "nama_kategori": {
+                    "description": "Dari join",
+                    "type": "string"
+                },
+                "nama_parameter": {
+                    "type": "string"
+                },
+                "opsi": {
+                    "description": "JSON string for radio/select options",
+                    "type": "string"
+                },
+                "placeholder": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "status_text": {
+                    "description": "\"Aktif\" atau \"Tidak Aktif\"",
+                    "type": "string"
+                },
+                "tgl_insert": {
+                    "type": "string"
+                },
+                "tgl_update": {
+                    "type": "string"
+                },
+                "tipe_input": {
+                    "type": "string"
+                },
+                "urutan": {
+                    "type": "integer"
+                },
+                "user_update": {
+                    "type": "string"
+                },
+                "validasi": {
+                    "description": "JSON string",
+                    "type": "string"
+                }
+            }
+        },
         "response.StatusReviewListResponse": {
             "type": "object",
             "properties": {
@@ -2321,6 +3464,70 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_update": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UserListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.UserResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.UserResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "last_login_text": {
+                    "description": "Optional",
+                    "type": "string"
+                },
+                "level_user": {
+                    "type": "integer"
+                },
+                "nama_level": {
+                    "description": "Dari join",
+                    "type": "string"
+                },
+                "nama_user": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "status_text": {
+                    "description": "\"Aktif\" atau \"Tidak Aktif\"",
+                    "type": "string"
+                },
+                "tgl_insert": {
+                    "type": "string"
+                },
+                "tgl_update": {
+                    "type": "string"
+                },
+                "user_update": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

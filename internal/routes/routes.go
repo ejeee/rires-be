@@ -120,6 +120,29 @@ func Setup(app *fiber.App) {
 		statusReview.Delete("/:id", statusReviewController.Delete)
 	}
 	
+	// Parameter Form routes (Master Data)
+	parameterFormController := controllers.NewParameterFormController()
+	parameterForm := api.Group("/parameter-form")
+	{
+		parameterForm.Get("/", parameterFormController.GetList)
+		parameterForm.Get("/kategori/:kategori_id", parameterFormController.GetByKategori) // Get by kategori for dynamic form
+		parameterForm.Get("/:id", parameterFormController.GetByID)
+		parameterForm.Post("/", parameterFormController.Create)
+		parameterForm.Put("/:id", parameterFormController.Update)
+		parameterForm.Delete("/:id", parameterFormController.Delete)
+	}
+
+	// User Management routes
+	userManagementController := controllers.NewUserManagementController()
+	users := api.Group("/users")
+	{
+		users.Get("/", userManagementController.GetList)
+		users.Get("/:id", userManagementController.GetByID)
+		users.Post("/", userManagementController.Create)
+		users.Put("/:id", userManagementController.Update)
+		users.Post("/:id/reset-password", userManagementController.ResetPassword)
+		users.Delete("/:id", userManagementController.Delete)
+	}
 	// Protected routes (akan ditambahkan nanti dengan middleware JWT)
 	// protected := api.Group("/", middleware.JWTProtected())
 	// {

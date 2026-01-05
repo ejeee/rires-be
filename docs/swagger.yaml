@@ -46,6 +46,47 @@ definitions:
     - status
     - url_menu
     type: object
+  request.CreateParameterFormRequest:
+    properties:
+      help_text:
+        type: string
+      kategori_id:
+        type: integer
+      label:
+        maxLength: 200
+        minLength: 3
+        type: string
+      nama_parameter:
+        maxLength: 100
+        minLength: 2
+        type: string
+      opsi:
+        description: JSON string for radio/select options
+        type: string
+      placeholder:
+        type: string
+      status:
+        description: 1=active, 2=inactive
+        enum:
+        - 1
+        - 2
+        type: integer
+      tipe_input:
+        description: text, textarea, number, file, radio, select, etc
+        type: string
+      urutan:
+        minimum: 0
+        type: integer
+      validasi:
+        description: JSON string
+        type: string
+    required:
+    - kategori_id
+    - label
+    - nama_parameter
+    - status
+    - tipe_input
+    type: object
   request.CreateStatusReviewRequest:
     properties:
       kode_status:
@@ -91,6 +132,41 @@ definitions:
     - nama_level
     - status
     type: object
+  request.CreateUserRequest:
+    properties:
+      level_user:
+        type: integer
+      nama_user:
+        minLength: 3
+        type: string
+      password:
+        description: Plain password, akan di-hash
+        minLength: 6
+        type: string
+      status:
+        description: 1=active, 2=inactive
+        enum:
+        - 1
+        - 2
+        type: integer
+      username:
+        minLength: 3
+        type: string
+    required:
+    - level_user
+    - nama_user
+    - password
+    - status
+    - username
+    type: object
+  request.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 6
+        type: string
+    required:
+    - new_password
+    type: object
   request.UpdateKategoriPKMRequest:
     properties:
       nama_kategori:
@@ -133,6 +209,44 @@ definitions:
     - status
     - url_menu
     type: object
+  request.UpdateParameterFormRequest:
+    properties:
+      help_text:
+        type: string
+      kategori_id:
+        type: integer
+      label:
+        maxLength: 200
+        minLength: 3
+        type: string
+      nama_parameter:
+        maxLength: 100
+        minLength: 2
+        type: string
+      opsi:
+        description: JSON string for radio/select options
+        type: string
+      placeholder:
+        type: string
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+      tipe_input:
+        type: string
+      urutan:
+        minimum: 0
+        type: integer
+      validasi:
+        type: string
+    required:
+    - kategori_id
+    - label
+    - nama_parameter
+    - status
+    - tipe_input
+    type: object
   request.UpdateStatusReviewRequest:
     properties:
       kode_status:
@@ -174,6 +288,27 @@ definitions:
     required:
     - nama_level
     - status
+    type: object
+  request.UpdateUserRequest:
+    properties:
+      level_user:
+        type: integer
+      nama_user:
+        minLength: 3
+        type: string
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+      username:
+        minLength: 3
+        type: string
+    required:
+    - level_user
+    - nama_user
+    - status
+    - username
     type: object
   response.KategoriPKMListResponse:
     properties:
@@ -272,6 +407,71 @@ definitions:
       urutan:
         type: integer
     type: object
+  response.ParameterFormByKategoriResponse:
+    properties:
+      kategori_id:
+        type: integer
+      nama_kategori:
+        type: string
+      parameters:
+        items:
+          $ref: '#/definitions/response.ParameterFormResponse'
+        type: array
+    type: object
+  response.ParameterFormListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.ParameterFormResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.ParameterFormResponse:
+    properties:
+      help_text:
+        type: string
+      id:
+        type: integer
+      kategori_id:
+        type: integer
+      label:
+        type: string
+      nama_kategori:
+        description: Dari join
+        type: string
+      nama_parameter:
+        type: string
+      opsi:
+        description: JSON string for radio/select options
+        type: string
+      placeholder:
+        type: string
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      tipe_input:
+        type: string
+      urutan:
+        type: integer
+      user_update:
+        type: string
+      validasi:
+        description: JSON string
+        type: string
+    type: object
   response.StatusReviewListResponse:
     properties:
       data:
@@ -342,6 +542,49 @@ definitions:
       tgl_update:
         type: string
       user_update:
+        type: string
+    type: object
+  response.UserListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.UserResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.UserResponse:
+    properties:
+      id:
+        type: integer
+      last_login_text:
+        description: Optional
+        type: string
+      level_user:
+        type: integer
+      nama_level:
+        description: Dari join
+        type: string
+      nama_user:
+        type: string
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      user_update:
+        type: string
+      username:
         type: string
     type: object
 host: localhost:8080
@@ -1058,6 +1301,273 @@ paths:
       summary: Get Menu Tree
       tags:
       - Menu
+  /parameter-form:
+    get:
+      consumes:
+      - application/json
+      description: Get list of parameter form with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by nama_parameter or label
+        in: query
+        name: search
+        type: string
+      - description: Filter by kategori_id
+        in: query
+        name: kategori_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ParameterFormListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Parameter Form
+      tags:
+      - Parameter Form
+    post:
+      consumes:
+      - application/json
+      description: Create new parameter form
+      parameters:
+      - description: Parameter Form Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateParameterFormRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ParameterFormResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Parameter Form
+      tags:
+      - Parameter Form
+  /parameter-form/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete parameter form
+      parameters:
+      - description: Parameter Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Parameter Form
+      tags:
+      - Parameter Form
+    get:
+      consumes:
+      - application/json
+      description: Get parameter form detail by ID
+      parameters:
+      - description: Parameter Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ParameterFormResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Parameter Form by ID
+      tags:
+      - Parameter Form
+    put:
+      consumes:
+      - application/json
+      description: Update existing parameter form
+      parameters:
+      - description: Parameter Form ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Parameter Form Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateParameterFormRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ParameterFormResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Parameter Form
+      tags:
+      - Parameter Form
+  /parameter-form/kategori/{kategori_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all parameters for specific kategori (for dynamic form rendering)
+      parameters:
+      - description: Kategori PKM ID
+        in: path
+        name: kategori_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ParameterFormByKategoriResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Parameter Form by Kategori
+      tags:
+      - Parameter Form
   /status-review:
     get:
       consumes:
@@ -1506,6 +2016,286 @@ paths:
       summary: Update User Level
       tags:
       - User Level
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get list of users with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by nama_user or username
+        in: query
+        name: search
+        type: string
+      - description: Filter by level_user
+        in: query
+        name: level_user
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Users
+      tags:
+      - User Management
+    post:
+      consumes:
+      - application/json
+      description: Create new user with hashed password
+      parameters:
+      - description: User Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create User
+      tags:
+      - User Management
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete User
+      tags:
+      - User Management
+    get:
+      consumes:
+      - application/json
+      description: Get user detail by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get User by ID
+      tags:
+      - User Management
+    put:
+      consumes:
+      - application/json
+      description: Update existing user (without password)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.UserResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update User
+      tags:
+      - User Management
+  /users/{id}/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New Password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reset User Password
+      tags:
+      - User Management
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token
