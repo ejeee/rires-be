@@ -98,6 +98,17 @@ func Setup(app *fiber.App) {
 		menus.Delete("/:id", menuController.Delete)
 	}
 
+		// Kategori PKM routes (Master Data)
+	kategoriPKMController := controllers.NewKategoriPKMController()
+	kategoriPKM := api.Group("/kategori-pkm")
+	{
+		kategoriPKM.Get("/", kategoriPKMController.GetList)
+		kategoriPKM.Get("/:id", kategoriPKMController.GetByID)
+		kategoriPKM.Post("/", kategoriPKMController.Create)
+		kategoriPKM.Put("/:id", kategoriPKMController.Update)
+		kategoriPKM.Delete("/:id", kategoriPKMController.Delete)
+	}
+	
 	// Protected routes (akan ditambahkan nanti dengan middleware JWT)
 	// protected := api.Group("/", middleware.JWTProtected())
 	// {

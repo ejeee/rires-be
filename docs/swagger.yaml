@@ -1,5 +1,21 @@
 basePath: /api/v1
 definitions:
+  request.CreateKategoriPKMRequest:
+    properties:
+      nama_kategori:
+        maxLength: 100
+        minLength: 3
+        type: string
+      status:
+        description: 1=active, 2=inactive
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - nama_kategori
+    - status
+    type: object
   request.CreateMenuRequest:
     properties:
       lucide:
@@ -46,6 +62,21 @@ definitions:
     - nama_level
     - status
     type: object
+  request.UpdateKategoriPKMRequest:
+    properties:
+      nama_kategori:
+        maxLength: 100
+        minLength: 3
+        type: string
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - nama_kategori
+    - status
+    type: object
   request.UpdateMenuRequest:
     properties:
       lucide:
@@ -87,6 +118,39 @@ definitions:
     required:
     - nama_level
     - status
+    type: object
+  response.KategoriPKMListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.KategoriPKMResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.KategoriPKMResponse:
+    properties:
+      id:
+        type: integer
+      nama_kategori:
+        type: string
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      user_update:
+        type: string
     type: object
   response.MenuListResponse:
     properties:
@@ -412,6 +476,230 @@ paths:
       summary: Get Current User
       tags:
       - Authentication
+  /kategori-pkm:
+    get:
+      consumes:
+      - application/json
+      description: Get list of kategori PKM with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by nama_kategori
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.KategoriPKMListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Kategori PKM
+      tags:
+      - Kategori PKM
+    post:
+      consumes:
+      - application/json
+      description: Create new kategori PKM
+      parameters:
+      - description: Kategori PKM Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateKategoriPKMRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.KategoriPKMResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Kategori PKM
+      tags:
+      - Kategori PKM
+  /kategori-pkm/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete kategori PKM
+      parameters:
+      - description: Kategori PKM ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Kategori PKM
+      tags:
+      - Kategori PKM
+    get:
+      consumes:
+      - application/json
+      description: Get kategori PKM detail by ID
+      parameters:
+      - description: Kategori PKM ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.KategoriPKMResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Kategori PKM by ID
+      tags:
+      - Kategori PKM
+    put:
+      consumes:
+      - application/json
+      description: Update existing kategori PKM
+      parameters:
+      - description: Kategori PKM ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Kategori PKM Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateKategoriPKMRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.KategoriPKMResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Kategori PKM
+      tags:
+      - Kategori PKM
   /menus:
     get:
       consumes:
