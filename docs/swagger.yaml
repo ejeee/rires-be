@@ -1,5 +1,35 @@
 basePath: /api/v1
 definitions:
+  request.CreateMenuRequest:
+    properties:
+      lucide:
+        description: Icon name
+        maxLength: 50
+        type: string
+      nama_menu:
+        maxLength: 50
+        minLength: 3
+        type: string
+      parent_id:
+        description: 0 untuk main menu, >0 untuk submenu
+        type: integer
+      status:
+        description: 1=active, 2=inactive
+        enum:
+        - 1
+        - 2
+        type: integer
+      url_menu:
+        maxLength: 50
+        type: string
+      urutan:
+        minimum: 0
+        type: integer
+    required:
+    - nama_menu
+    - status
+    - url_menu
+    type: object
   request.CreateUserLevelRequest:
     properties:
       nama_level:
@@ -16,6 +46,33 @@ definitions:
     - nama_level
     - status
     type: object
+  request.UpdateMenuRequest:
+    properties:
+      lucide:
+        maxLength: 50
+        type: string
+      nama_menu:
+        maxLength: 50
+        minLength: 3
+        type: string
+      parent_id:
+        type: integer
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+      url_menu:
+        maxLength: 50
+        type: string
+      urutan:
+        minimum: 0
+        type: integer
+    required:
+    - nama_menu
+    - status
+    - url_menu
+    type: object
   request.UpdateUserLevelRequest:
     properties:
       nama_level:
@@ -30,6 +87,70 @@ definitions:
     required:
     - nama_level
     - status
+    type: object
+  response.MenuListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.MenuResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.MenuResponse:
+    properties:
+      id:
+        type: integer
+      lucide:
+        type: string
+      nama_menu:
+        type: string
+      parent_id:
+        type: integer
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      url_menu:
+        type: string
+      urutan:
+        type: integer
+      user_update:
+        type: string
+    type: object
+  response.MenuTreeResponse:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/response.MenuTreeResponse'
+        type: array
+      id:
+        type: integer
+      lucide:
+        type: string
+      nama_menu:
+        type: string
+      parent_id:
+        type: integer
+      status:
+        type: integer
+      status_text:
+        type: string
+      url_menu:
+        type: string
+      urutan:
+        type: integer
     type: object
   response.UserLevelListResponse:
     properties:
@@ -291,6 +412,269 @@ paths:
       summary: Get Current User
       tags:
       - Authentication
+  /menus:
+    get:
+      consumes:
+      - application/json
+      description: Get list of menus with pagination (flat structure)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by nama_menu
+        in: query
+        name: search
+        type: string
+      - description: Filter by parent_id
+        in: query
+        name: parent_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.MenuListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Menus
+      tags:
+      - Menu
+    post:
+      consumes:
+      - application/json
+      description: Create new menu
+      parameters:
+      - description: Menu Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateMenuRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.MenuResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Menu
+      tags:
+      - Menu
+  /menus/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete menu
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Menu
+      tags:
+      - Menu
+    get:
+      consumes:
+      - application/json
+      description: Get menu detail by ID
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.MenuResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Menu by ID
+      tags:
+      - Menu
+    put:
+      consumes:
+      - application/json
+      description: Update existing menu
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Menu Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateMenuRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.MenuResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Menu
+      tags:
+      - Menu
+  /menus/tree:
+    get:
+      consumes:
+      - application/json
+      description: Get menus in tree/hierarchical structure (for sidebar/navigation)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/response.MenuTreeResponse'
+                type: array
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Menu Tree
+      tags:
+      - Menu
   /user-levels:
     get:
       consumes:

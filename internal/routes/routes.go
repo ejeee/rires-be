@@ -86,6 +86,18 @@ func Setup(app *fiber.App) {
 		userLevels.Delete("/:id", userLevelController.Delete)
 	}
 
+		// Menu routes (Master Data)
+	menuController := controllers.NewMenuController()
+	menus := api.Group("/menus")
+	{
+		menus.Get("/", menuController.GetList)           // List flat
+		menus.Get("/tree", menuController.GetTree)       // Tree structure
+		menus.Get("/:id", menuController.GetByID)
+		menus.Post("/", menuController.Create)
+		menus.Put("/:id", menuController.Update)
+		menus.Delete("/:id", menuController.Delete)
+	}
+
 	// Protected routes (akan ditambahkan nanti dengan middleware JWT)
 	// protected := api.Group("/", middleware.JWTProtected())
 	// {
