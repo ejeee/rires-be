@@ -258,6 +258,39 @@ paths:
       summary: Login Pegawai
       tags:
       - Authentication
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get currently logged in user information from JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Current User
+      tags:
+      - Authentication
   /user-levels:
     get:
       consumes:

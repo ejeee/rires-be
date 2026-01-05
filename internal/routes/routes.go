@@ -59,6 +59,7 @@ func Setup(app *fiber.App) {
 		auth.Post("/login/admin", authController.LoginAdmin)
 		auth.Post("/login/mahasiswa", authController.LoginMahasiswa)
 		auth.Post("/login/pegawai", authController.LoginPegawai)
+		auth.Get("/me", authController.GetCurrentUser)
 
 		// GET endpoints for browser testing (DEVELOPMENT ONLY - NOT SECURE!)
 		auth.Get("/test/pegawai/:username/:password", func(c *fiber.Ctx) error {

@@ -3,8 +3,8 @@ package controllers
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	request "rires-be/internal/dto/request"
-	response "rires-be/internal/dto/response"
+	"rires-be/internal/dto/request"
+	"rires-be/internal/dto/response"
 	"rires-be/internal/models"
 	"rires-be/pkg/database"
 	"rires-be/pkg/services"
@@ -81,8 +81,17 @@ func (ctrl *AuthController) LoginAdmin(c *fiber.Ctx) error {
 		}
 	}
 
-	// Generate JWT token
-	token, err := utils.GenerateToken(uint(user.ID), user.Username)
+	// Generate JWT token with user data
+	token, err := utils.GenerateTokenWithClaims(
+		uint(user.ID),
+		user.Username,
+		"",
+		"admin",
+		map[string]string{
+			"nama_user":  user.NamaUser,
+			"level_user": strconv.Itoa(user.LevelUser),
+		},
+	)
 	if err != nil {
 		return utils.InternalServerErrorResponse(c, "Failed to generate token")
 	}
@@ -137,9 +146,18 @@ func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
-	// Generate JWT token
-	// Gunakan NIM sebagai unique identifier
-	token, err := utils.GenerateToken(0, mahasiswa.NIM) // ID = 0 karena bukan dari DB lokal
+	// Generate JWT token with mahasiswa data
+	token, err := utils.GenerateTokenWithClaims(
+		0, // ID = 0 karena bukan dari DB lokal
+		mahasiswa.NIM,
+		"",
+		"mahasiswa",
+		map[string]string{
+			"nama":     mahasiswa.Nama,
+			"prodi":    mahasiswa.Prodi,
+			"fakultas": mahasiswa.Fakultas,
+		},
+	)
 	if err != nil {
 		return utils.InternalServerErrorResponse(c, "Failed to generate token")
 	}
@@ -188,9 +206,18 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
-	// Generate JWT token
-	// Gunakan NIP sebagai unique identifier
-	token, err := utils.GenerateToken(0, pegawai.NIP) // ID = 0 karena bukan dari DB lokal
+	// Generate JWT token with pegawai data
+	token, err := utils.GenerateTokenWithClaims(
+		0, // ID = 0 karena bukan dari DB lokal
+		pegawai.NIP,
+		pegawai.Email,
+		"pegawai",
+		map[string]string{
+			"nama":    pegawai.Nama,
+			"jabatan": pegawai.Jabatan,
+			"unit":    pegawai.Unit,
+		},
+	)
 	if err != nil {
 		return utils.InternalServerErrorResponse(c, "Failed to generate token")
 	}
@@ -222,4 +249,89 @@ func hashMySQLPassword(password string) string {
 	result := "*" + strings.ToUpper(hex.EncodeToString(secondHash[:]))
 	
 	return result
+}
+
+// GetCurrentUser godoc
+// @Summary Get Current User
+// @Description Get currently logged in user information from JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Success 200 {object} object{success=bool,message=string,data=object}
+// @Failure 401 {object} object{success=bool,message=string}
+// @Security BearerAuth
+// @Router /auth/me [get]
+func (ctrl *AuthController) GetCurrentUser(c *fiber.Ctx) error {
+	// Get Authorization header
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return utils.UnauthorizedResponse(c, "Missing authorization header")
+	}
+
+	// Check if it starts with "Bearer "
+	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		return utils.UnauthorizedResponse(c, "Invalid authorization header format")
+	}
+
+	// Extract token
+	tokenString := authHeader[7:]
+
+	// Parse & validate token
+	claims, err := utils.ValidateToken(tokenString)
+	if err != nil {
+		return utils.UnauthorizedResponse(c, "Invalid or expired token")
+	}
+
+	// Get user type from claims struct (NOT map!)
+	userType := claims.UserType
+	userID := int(claims.UserID)
+
+	// Fetch user data based on type
+	var userData interface{}
+
+	switch userType {
+	case "admin":
+		// Get admin from database
+		var user models.User
+		if err := database.DB.Where("id = ? AND hapus = ?", userID, 0).First(&user).Error; err != nil {
+			return utils.NotFoundResponse(c, "User not found")
+		}
+
+		userData = fiber.Map{
+			"id":         user.ID,
+			"username":   user.Username,
+			"nama_user":  user.NamaUser,
+			"level_user": user.LevelUser,
+			"status":     user.Status,
+		}
+
+	case "mahasiswa":
+		// Get from token claims (data dari API external)
+		userData = fiber.Map{
+			"nim":      claims.Username,
+			"nama":     claims.UserData["nama"],
+			"prodi":    claims.UserData["prodi"],
+			"fakultas": claims.UserData["fakultas"],
+		}
+
+	case "pegawai":
+		// Get from token claims (data dari API external)
+		userData = fiber.Map{
+			"nip":     claims.Username,
+			"nama":    claims.UserData["nama"],
+			"jabatan": claims.UserData["jabatan"],
+			"unit":    claims.UserData["unit"],
+			"email":   claims.Email,
+		}
+
+	default:
+		return utils.BadRequestResponse(c, "Unknown user type")
+	}
+
+	response := fiber.Map{
+		"user_type": userType,
+		"user":      userData,
+	}
+
+	return utils.SuccessResponse(c, "User data retrieved successfully", response)
 }
