@@ -116,6 +116,27 @@ definitions:
     - status
     - warna
     type: object
+  request.CreateTanggalPendaftaranRequest:
+    properties:
+      keterangan:
+        type: string
+      status:
+        description: 1=enabled, 2=disabled
+        enum:
+        - 1
+        - 2
+        type: integer
+      tanggal_mulai:
+        description: 'Format: "2026-01-01 00:00:00"'
+        type: string
+      tanggal_selesai:
+        description: 'Format: "2026-01-31 23:59:59"'
+        type: string
+    required:
+    - status
+    - tanggal_mulai
+    - tanggal_selesai
+    type: object
   request.CreateUserLevelRequest:
     properties:
       nama_level:
@@ -273,6 +294,24 @@ definitions:
     - nama_status
     - status
     - warna
+    type: object
+  request.UpdateTanggalPendaftaranRequest:
+    properties:
+      keterangan:
+        type: string
+      status:
+        enum:
+        - 1
+        - 2
+        type: integer
+      tanggal_mulai:
+        type: string
+      tanggal_selesai:
+        type: string
+    required:
+    - status
+    - tanggal_mulai
+    - tanggal_selesai
     type: object
   request.UpdateUserLevelRequest:
     properties:
@@ -472,6 +511,19 @@ definitions:
         description: JSON string
         type: string
     type: object
+  response.RegistrationStatusResponse:
+    properties:
+      days_remaining:
+        type: integer
+      is_open:
+        type: boolean
+      message:
+        type: string
+      tanggal_mulai:
+        type: string
+      tanggal_selesai:
+        type: string
+    type: object
   response.StatusReviewListResponse:
     properties:
       data:
@@ -509,6 +561,54 @@ definitions:
       user_update:
         type: string
       warna:
+        type: string
+    type: object
+  response.TanggalPendaftaranListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.TanggalPendaftaranResponse'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.TanggalPendaftaranResponse:
+    properties:
+      days_remaining:
+        description: Hari tersisa
+        type: integer
+      id:
+        type: integer
+      is_active:
+        type: integer
+      is_active_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      is_open:
+        description: Currently open for registration?
+        type: boolean
+      keterangan:
+        type: string
+      status:
+        type: integer
+      status_text:
+        description: '"Aktif" atau "Tidak Aktif"'
+        type: string
+      tanggal_mulai:
+        type: string
+      tanggal_selesai:
+        type: string
+      tgl_insert:
+        type: string
+      tgl_update:
+        type: string
+      user_update:
         type: string
     type: object
   response.UserLevelListResponse:
@@ -1792,6 +1892,260 @@ paths:
       summary: Update Status Review
       tags:
       - Status Review
+  /tanggal-pendaftaran:
+    get:
+      consumes:
+      - application/json
+      description: Get list of registration periods with pagination (admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TanggalPendaftaranListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Tanggal Pendaftaran
+      tags:
+      - Tanggal Pendaftaran
+    post:
+      consumes:
+      - application/json
+      description: Create new registration period and set as active (deactivate others)
+      parameters:
+      - description: Tanggal Pendaftaran Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTanggalPendaftaranRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TanggalPendaftaranResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Tanggal Pendaftaran
+      tags:
+      - Tanggal Pendaftaran
+  /tanggal-pendaftaran/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete registration period
+      parameters:
+      - description: Tanggal Pendaftaran ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Tanggal Pendaftaran
+      tags:
+      - Tanggal Pendaftaran
+    get:
+      consumes:
+      - application/json
+      description: Get registration period detail by ID
+      parameters:
+      - description: Tanggal Pendaftaran ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TanggalPendaftaranResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Tanggal Pendaftaran by ID
+      tags:
+      - Tanggal Pendaftaran
+    put:
+      consumes:
+      - application/json
+      description: Update existing registration period
+      parameters:
+      - description: Tanggal Pendaftaran ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tanggal Pendaftaran Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTanggalPendaftaranRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TanggalPendaftaranResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Tanggal Pendaftaran
+      tags:
+      - Tanggal Pendaftaran
+  /tanggal-pendaftaran/active:
+    get:
+      consumes:
+      - application/json
+      description: Get currently active registration period (for checking if registration
+        is open)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.RegistrationStatusResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Active Registration Period
+      tags:
+      - Tanggal Pendaftaran
   /user-levels:
     get:
       consumes:

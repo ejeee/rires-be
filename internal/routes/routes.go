@@ -157,4 +157,21 @@ func Setup(app *fiber.App) {
 		users.Post("/:id/reset-password", userManagementController.ResetPassword)
 		users.Delete("/:id", userManagementController.Delete)
 	}
+
+	// Tanggal Pendaftaran routes
+	tanggalPendaftaranController := controllers.NewTanggalPendaftaranController()
+	// Public endpoint - check if registration is open
+	tanggalPublic := protected.Group("/tanggal-pendaftaran")
+	{
+		tanggalPublic.Get("/active", tanggalPendaftaranController.GetActive) // All authenticated users can check
+	}
+	// Admin only endpoints
+	tanggalAdmin := protected.Group("/tanggal-pendaftaran", middleware.RequireAdmin())
+	{
+		tanggalAdmin.Get("/", tanggalPendaftaranController.GetList)
+		tanggalAdmin.Get("/:id", tanggalPendaftaranController.GetByID)
+		tanggalAdmin.Post("/", tanggalPendaftaranController.Create)
+		tanggalAdmin.Put("/:id", tanggalPendaftaranController.Update)
+		tanggalAdmin.Delete("/:id", tanggalPendaftaranController.Delete)
+	}
 }
