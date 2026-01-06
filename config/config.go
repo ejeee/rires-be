@@ -22,6 +22,27 @@ type Config struct {
 	DBPassword string
 	DBName     string
 
+	// NEOMAA Database config (data mahasiswa)
+	DBNeomaaHost     string
+	DBNeomaaPort     string
+	DBNeomaaUser     string
+	DBNeomaaPassword string
+	DBNeomaaName     string
+
+	// NEOMAAREF Database config (data referensi: prodi, fakultas)
+	DBNeomaaRefHost     string
+	DBNeomaaRefPort     string
+	DBNeomaaRefUser     string
+	DBNeomaaRefPassword string
+	DBNeomaaRefName     string
+
+	// SIMPEG Database config (data pegawai)
+	DBSimpegHost     string
+	DBSimpegPort     string
+	DBSimpegUser     string
+	DBSimpegPassword string
+	DBSimpegName     string
+
 	// JWT config
 	JWTSecret       string
 	JWTExpiredHours string
@@ -54,6 +75,27 @@ func LoadConfig() error {
 		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", "student_rires2"),
 
+		// NEOMAA Database
+		DBNeomaaHost:     getEnv("DB_NEOMAA_HOST", "localhost"),
+		DBNeomaaPort:     getEnv("DB_NEOMAA_PORT", "3306"),
+		DBNeomaaUser:     getEnv("DB_NEOMAA_USER", "root"),
+		DBNeomaaPassword: getEnv("DB_NEOMAA_PASSWORD", ""),
+		DBNeomaaName:     getEnv("DB_NEOMAA_NAME", "neomaa"),
+
+		// NEOMAAREF Database
+		DBNeomaaRefHost:     getEnv("DB_NEOMAAREF_HOST", "localhost"),
+		DBNeomaaRefPort:     getEnv("DB_NEOMAAREF_PORT", "3306"),
+		DBNeomaaRefUser:     getEnv("DB_NEOMAAREF_USER", "root"),
+		DBNeomaaRefPassword: getEnv("DB_NEOMAAREF_PASSWORD", ""),
+		DBNeomaaRefName:     getEnv("DB_NEOMAAREF_NAME", "neomaaref"),
+
+		// SIMPEG Database
+		DBSimpegHost:     getEnv("DB_SIMPEG_HOST", "localhost"),
+		DBSimpegPort:     getEnv("DB_SIMPEG_PORT", "3306"),
+		DBSimpegUser:     getEnv("DB_SIMPEG_USER", "root"),
+		DBSimpegPassword: getEnv("DB_SIMPEG_PASSWORD", ""),
+		DBSimpegName:     getEnv("DB_SIMPEG_NAME", "newsimpeg"),
+
 		JWTSecret:       getEnv("JWT_SECRET", ""),
 		JWTExpiredHours: getEnv("JWT_EXPIRED_HOURS", "24"),
 
@@ -82,5 +124,38 @@ func (c *Config) GetDSN() string {
 		c.DBHost,
 		c.DBPort,
 		c.DBName,
+	)
+}
+
+// GetDSNNeomaa mengembalikan DSN untuk database NEOMAA
+func (c *Config) GetDSNNeomaa() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		c.DBNeomaaUser,
+		c.DBNeomaaPassword,
+		c.DBNeomaaHost,
+		c.DBNeomaaPort,
+		c.DBNeomaaName,
+	)
+}
+
+// GetDSNNeomaaRef mengembalikan DSN untuk database NEOMAAREF
+func (c *Config) GetDSNNeomaaRef() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		c.DBNeomaaRefUser,
+		c.DBNeomaaRefPassword,
+		c.DBNeomaaRefHost,
+		c.DBNeomaaRefPort,
+		c.DBNeomaaRefName,
+	)
+}
+
+// GetDSNSimpeg mengembalikan DSN untuk database SIMPEG
+func (c *Config) GetDSNSimpeg() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		c.DBSimpegUser,
+		c.DBSimpegPassword,
+		c.DBSimpegHost,
+		c.DBSimpegPort,
+		c.DBSimpegName,
 	)
 }

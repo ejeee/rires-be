@@ -37,11 +37,20 @@ func main() {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	// Connect to database
+	// Connect to main database rires
 	if err := database.Connect(config.AppConfig.GetDSN()); err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer database.CloseDB()
+
+	// Connect to external databases (NEOMAA, NEOMAAREF, SIMPEG)
+	if err := database.ConnectExternal(
+		config.AppConfig.GetDSNNeomaa(),
+		config.AppConfig.GetDSNNeomaaRef(),
+		config.AppConfig.GetDSNSimpeg(),
+	); err != nil {
+		log.Fatal("Failed to connect to external databases:", err)
+	}
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
