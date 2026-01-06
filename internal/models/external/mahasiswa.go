@@ -1,22 +1,37 @@
 package external
 
-// Mahasiswa represents data mahasiswa from NEOMAA database
-// Table structure should match the actual NEOMAA database
+// Mahasiswa represents data mahasiswa from NEOMAA database (table: master_siswa)
+// Only essential fields for PKM system
 type Mahasiswa struct {
-	NIM       string `gorm:"column:nim;primaryKey" json:"nim"`
-	Nama      string `gorm:"column:nama" json:"nama"`
-	Email     string `gorm:"column:email" json:"email"`
-	IDProdi   int    `gorm:"column:id_prodi" json:"id_prodi"`
-	Angkatan  string `gorm:"column:angkatan" json:"angkatan"`
-	NoHP      string `gorm:"column:no_hp" json:"no_hp"`
-	Status    int    `gorm:"column:status" json:"status"` // 1=aktif, 2=tidak aktif, dll
+	KodeSiswa       string `gorm:"column:kode_siswa;primaryKey" json:"kode_siswa"` // NIM
+	NamaSiswa       string `gorm:"column:nama_siswa" json:"nama_siswa"`             // Nama lengkap
+	HPSiswa         string `gorm:"column:hp_siswa" json:"hp_siswa"`                 // No HP
+	RefProgramStudi int    `gorm:"column:ref_program_studi" json:"ref_program_studi"` // ID Prodi
+	TahunMasuk      int    `gorm:"column:tahun_masuk" json:"tahun_masuk"`           // Angkatan
 	
 	// Relations (optional, jika perlu join)
-	Prodi     *Prodi `gorm:"foreignKey:IDProdi" json:"prodi,omitempty"`
+	Prodi *Prodi `gorm:"foreignKey:RefProgramStudi;references:Kode" json:"prodi,omitempty"`
 }
 
 // TableName specifies the table name in NEOMAA database
-// TODO: Sesuaikan dengan nama tabel actual di NEOMAA
 func (Mahasiswa) TableName() string {
-	return "master_siswa" // Change this to actual table name
+	return "master_siswa"
+}
+
+// GetNIM returns the NIM (kode_siswa)
+func (m *Mahasiswa) GetNIM() string {
+	return m.KodeSiswa
+}
+
+// GetNama returns the nama (nama_siswa)
+func (m *Mahasiswa) GetNama() string {
+	return m.NamaSiswa
+}
+
+// GetAngkatan returns the angkatan (tahun_masuk)
+func (m *Mahasiswa) GetAngkatan() string {
+	if m.TahunMasuk > 0 {
+		return string(rune(m.TahunMasuk))
+	}
+	return ""
 }

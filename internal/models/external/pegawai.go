@@ -1,23 +1,39 @@
 package external
 
-// Pegawai represents data pegawai/dosen from NEWSIMPEG database
-// Table structure should match the actual SIMPEG database
+// Pegawai represents data pegawai/dosen from NEWSIMPEG database (table: pegawai)
 type Pegawai struct {
-	ID              int    `gorm:"column:id;primaryKey" json:"id"`
-	NIP             string `gorm:"column:nip" json:"nip"`
-	Nama            string `gorm:"column:nama" json:"nama"`
-	Email           string `gorm:"column:email" json:"email"`
-	IDFakultas      int    `gorm:"column:id_fakultas" json:"id_fakultas"`
-	BidangKeahlian  string `gorm:"column:bidang_keahlian" json:"bidang_keahlian"`
-	NoHP            string `gorm:"column:no_hp" json:"no_hp"`
-	Status          int    `gorm:"column:status" json:"status"`
+	ID                    int    `gorm:"column:id;primaryKey" json:"id"`
+	NIP                   string `gorm:"column:nip" json:"nip"`
+	NamaPegawai           string `gorm:"column:nama_pegawai" json:"nama_pegawai"`
+	GelarDepan            string `gorm:"column:gelar_depan" json:"gelar_depan"`
+	GelarBelakang         string `gorm:"column:gelar_belakang" json:"gelar_belakang"`
+	HP                    string `gorm:"column:hp" json:"hp"`
+	Foto                  string `gorm:"column:foto" json:"foto"`
+	EmailUMM              string `gorm:"column:email_umm" json:"email_umm"`
+	Email                 string `gorm:"column:email" json:"email"`
+	Hapus                 int    `gorm:"column:hapus" json:"hapus"` // 1=ada, 0=hapus
+	TglInsert             string `gorm:"column:tgl_insert" json:"tgl_insert"`
+	TglUpdate             string `gorm:"column:tgl_update" json:"tgl_update"`
+	UserUpdate            string `gorm:"column:user_update" json:"user_update"`
 	
 	// Relations (optional)
-	Fakultas        *Fakultas `gorm:"foreignKey:IDFakultas" json:"fakultas,omitempty"`
+	Fakultas *Fakultas `gorm:"foreignKey:IDF;references:Kode" json:"fakultas,omitempty"`
 }
 
 // TableName specifies the table name in SIMPEG database
-// TODO: Sesuaikan dengan nama tabel actual di SIMPEG
 func (Pegawai) TableName() string {
-	return "newsimpeg" // Change this to actual table name
+	return "pegawai"
+}
+
+// GetNamaLengkap returns full name with gelar
+func (p *Pegawai) GetNamaLengkap() string {
+	nama := ""
+	if p.GelarDepan != "" {
+		nama = p.GelarDepan + " "
+	}
+	nama += p.NamaPegawai
+	if p.GelarBelakang != "" {
+		nama += ", " + p.GelarBelakang
+	}
+	return nama
 }

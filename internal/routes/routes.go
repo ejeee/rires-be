@@ -116,6 +116,16 @@ func Setup(app *fiber.App) {
 	// 	})
 	// })
 
+	// Test Helper endpoints (for development/testing)
+	testHelperController := controllers.NewTestHelperController()
+	test := app.Group("/test")
+	{
+		test.Get("/external-data", testHelperController.TestExternalData)
+		test.Get("/code-generator", testHelperController.TestCodeGenerator)
+		test.Get("/status-validator", testHelperController.TestStatusValidator)
+		test.Post("/file-upload", testHelperController.TestFileUpload)
+	}
+
 	// API v1 routes
 	api := app.Group("/api/v1")
 

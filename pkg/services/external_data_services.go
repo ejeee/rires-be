@@ -18,35 +18,35 @@ func NewExternalDataService() *ExternalDataService {
 // MAHASISWA - NEOMAA
 // ========================================
 
-// GetMahasiswaByNIM fetches mahasiswa data from NEOMAA by NIM
+// GetMahasiswaByNIM fetches mahasiswa data from NEOMAA by NIM (kode_siswa)
 func (s *ExternalDataService) GetMahasiswaByNIM(nim string) (*external.Mahasiswa, error) {
 	if database.DBNeomaa == nil {
 		return nil, errors.New("NEOMAA database not connected")
 	}
 
 	var mahasiswa external.Mahasiswa
-	if err := database.DBNeomaa.Where("nim = ? AND status = ?", nim, 1).First(&mahasiswa).Error; err != nil {
+	if err := database.DBNeomaa.Where("kode_siswa = ?", nim).First(&mahasiswa).Error; err != nil {
 		return nil, err
 	}
 
 	return &mahasiswa, nil
 }
 
-// GetMahasiswaByNIMs fetches multiple mahasiswa by NIMs
+// GetMahasiswaByNIMs fetches multiple mahasiswa by NIMs (kode_siswa)
 func (s *ExternalDataService) GetMahasiswaByNIMs(nims []string) ([]external.Mahasiswa, error) {
 	if database.DBNeomaa == nil {
 		return nil, errors.New("NEOMAA database not connected")
 	}
 
 	var mahasiswaList []external.Mahasiswa
-	if err := database.DBNeomaa.Where("nim IN ? AND status = ?", nims, 1).Find(&mahasiswaList).Error; err != nil {
+	if err := database.DBNeomaa.Where("kode_siswa IN ?", nims).Find(&mahasiswaList).Error; err != nil {
 		return nil, err
 	}
 
 	return mahasiswaList, nil
 }
 
-// ValidateNIMExists checks if NIM exists and is active in NEOMAA
+// ValidateNIMExists checks if NIM (kode_siswa) exists in NEOMAA
 func (s *ExternalDataService) ValidateNIMExists(nim string) bool {
 	if database.DBNeomaa == nil {
 		return false
@@ -54,7 +54,7 @@ func (s *ExternalDataService) ValidateNIMExists(nim string) bool {
 
 	var count int64
 	database.DBNeomaa.Model(&external.Mahasiswa{}).
-		Where("nim = ? AND status = ?", nim, 1).
+		Where("kode_siswa = ?", nim).
 		Count(&count)
 
 	return count > 0
@@ -68,7 +68,7 @@ func (s *ExternalDataService) GetMahasiswaWithProdi(nim string) (*external.Mahas
 
 	var mahasiswa external.Mahasiswa
 	if err := database.DBNeomaa.Preload("Prodi.Fakultas").
-		Where("nim = ? AND status = ?", nim, 1).
+		Where("kode_siswa = ?", nim).
 		First(&mahasiswa).Error; err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (s *ExternalDataService) GetPegawaiByID(id int) (*external.Pegawai, error) 
 	}
 
 	var pegawai external.Pegawai
-	if err := database.DBSimpeg.Where("id = ? AND status = ?", id, 1).First(&pegawai).Error; err != nil {
+	if err := database.DBSimpeg.Where("id = ? AND hapus = ?", id, 0).First(&pegawai).Error; err != nil {
 		return nil, err
 	}
 
@@ -101,14 +101,14 @@ func (s *ExternalDataService) GetPegawaiByIDs(ids []int) ([]external.Pegawai, er
 	}
 
 	var pegawaiList []external.Pegawai
-	if err := database.DBSimpeg.Where("id IN ? AND status = ?", ids, 1).Find(&pegawaiList).Error; err != nil {
+	if err := database.DBSimpeg.Where("id IN ? AND hapus = ?", ids, 0).Find(&pegawaiList).Error; err != nil {
 		return nil, err
 	}
 
 	return pegawaiList, nil
 }
 
-// ValidatePegawaiExists checks if pegawai ID exists and is active in SIMPEG
+// ValidatePegawaiExists checks if pegawai ID exists in SIMPEG
 func (s *ExternalDataService) ValidatePegawaiExists(id int) bool {
 	if database.DBSimpeg == nil {
 		return false
@@ -116,7 +116,7 @@ func (s *ExternalDataService) ValidatePegawaiExists(id int) bool {
 
 	var count int64
 	database.DBSimpeg.Model(&external.Pegawai{}).
-		Where("id = ? AND status = ?", id, 1).
+		Where("id = ? AND hapus = ?", id, 0).
 		Count(&count)
 
 	return count > 0
@@ -130,7 +130,7 @@ func (s *ExternalDataService) GetPegawaiWithFakultas(id int) (*external.Pegawai,
 
 	var pegawai external.Pegawai
 	if err := database.DBSimpeg.Preload("Fakultas").
-		Where("id = ? AND status = ?", id, 1).
+		Where("id = ? AND hapus = ?", id, 0).
 		First(&pegawai).Error; err != nil {
 		return nil, err
 	}
@@ -138,15 +138,15 @@ func (s *ExternalDataService) GetPegawaiWithFakultas(id int) (*external.Pegawai,
 	return &pegawai, nil
 }
 
-// GetAllReviewers fetches all pegawai that can be reviewers (active status)
+// GetAllReviewers fetches all pegawai that can be reviewers
 func (s *ExternalDataService) GetAllReviewers() ([]external.Pegawai, error) {
 	if database.DBSimpeg == nil {
 		return nil, errors.New("SIMPEG database not connected")
 	}
 
 	var pegawaiList []external.Pegawai
-	if err := database.DBSimpeg.Where("status = ?", 1).
-		Order("nama ASC").
+	if err := database.DBSimpeg.Where("hapus = ?", 0).
+		Order("nama_pegawai ASC").
 		Find(&pegawaiList).Error; err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (s *ExternalDataService) GetProdiByID(id int) (*external.Prodi, error) {
 	}
 
 	var prodi external.Prodi
-	if err := database.DBNeomaaRef.Where("id = ? AND status = ?", id, 1).First(&prodi).Error; err != nil {
+	if err := database.DBNeomaaRef.Where("kode = ? AND hapus = ?", id, 0).First(&prodi).Error; err != nil {
 		return nil, err
 	}
 
@@ -179,7 +179,7 @@ func (s *ExternalDataService) GetFakultasByID(id int) (*external.Fakultas, error
 	}
 
 	var fakultas external.Fakultas
-	if err := database.DBNeomaaRef.Where("id = ? AND status = ?", id, 1).First(&fakultas).Error; err != nil {
+	if err := database.DBNeomaaRef.Where("kode = ? AND hapus = ?", id, 0).First(&fakultas).Error; err != nil {
 		return nil, err
 	}
 
@@ -194,8 +194,8 @@ func (s *ExternalDataService) GetAllProdi() ([]external.Prodi, error) {
 
 	var prodiList []external.Prodi
 	if err := database.DBNeomaaRef.Preload("Fakultas").
-		Where("status = ?", 1).
-		Order("nama_prodi ASC").
+		Where("hapus = ?", 0).
+		Order("nama_depart ASC").
 		Find(&prodiList).Error; err != nil {
 		return nil, err
 	}
@@ -210,8 +210,8 @@ func (s *ExternalDataService) GetAllFakultas() ([]external.Fakultas, error) {
 	}
 
 	var fakultasList []external.Fakultas
-	if err := database.DBNeomaaRef.Where("status = ?", 1).
-		Order("nama_fakultas ASC").
+	if err := database.DBNeomaaRef.Where("hapus = ?", 0).
+		Order("namaFakultas ASC").
 		Find(&fakultasList).Error; err != nil {
 		return nil, err
 	}
