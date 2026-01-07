@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  request.ActivateReviewerRequest:
+    properties:
+      id_pegawai:
+        type: integer
+    required:
+    - id_pegawai
+    type: object
   request.AnggotaRequest:
     properties:
       is_ketua:
@@ -374,6 +381,14 @@ definitions:
     - status
     - tipe_input
     type: object
+  request.UpdateReviewerRequest:
+    properties:
+      is_active:
+        enum:
+        - 0
+        - 1
+        type: integer
+    type: object
   request.UpdateStatusReviewRequest:
     properties:
       kode_status:
@@ -463,6 +478,20 @@ definitions:
         type: string
       success:
         type: boolean
+    type: object
+  response.AvailablePegawaiResponse:
+    properties:
+      email_umm:
+        type: string
+      id:
+        type: integer
+      is_activated:
+        description: Already in db_reviewer?
+        type: boolean
+      nama_lengkap:
+        type: string
+      nama_pegawai:
+        type: string
     type: object
   response.FakultasResponse:
     properties:
@@ -850,6 +879,21 @@ definitions:
         type: string
       tipe_review:
         description: JUDUL or PROPOSAL
+        type: string
+    type: object
+  response.ReviewerResponse:
+    properties:
+      email_umm:
+        type: string
+      id:
+        type: integer
+      id_pegawai:
+        type: integer
+      is_active:
+        type: integer
+      nama_pegawai:
+        type: string
+      tgl_insert:
         type: string
     type: object
   response.StatusReviewListResponse:
@@ -1302,6 +1346,226 @@ paths:
       summary: Assign Reviewer for Proposal
       tags:
       - Admin - Pengajuan PKM
+  /admin/reviewers:
+    get:
+      consumes:
+      - application/json
+      description: Admin gets list of all activated reviewers
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ReviewerResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Reviewers
+      tags:
+      - Admin - Reviewer Management
+    post:
+      consumes:
+      - application/json
+      description: Admin activates a pegawai to become reviewer
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pegawai ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ActivateReviewerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ReviewerResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Activate Pegawai as Reviewer
+      tags:
+      - Admin - Reviewer Management
+  /admin/reviewers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Admin deactivates/deletes reviewer
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Reviewer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Reviewer
+      tags:
+      - Admin - Reviewer Management
+    put:
+      consumes:
+      - application/json
+      description: Admin updates reviewer active status
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Reviewer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateReviewerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ReviewerResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Reviewer Status
+      tags:
+      - Admin - Reviewer Management
+  /admin/reviewers/available:
+    get:
+      consumes:
+      - application/json
+      description: Admin gets list of pegawai with email_umm that can be activated
+        as reviewers
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.AvailablePegawaiResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Available Pegawai
+      tags:
+      - Admin - Reviewer Management
   /auth/login/admin:
     post:
       consumes:

@@ -95,11 +95,6 @@ func (m *MapperService) MapPegawaiToResponse(pegawai *external.Pegawai) *respons
 		HP:            pegawai.HP,
 	}
 
-	// Map Fakultas if available
-	if pegawai.Fakultas != nil {
-		resp.Fakultas = m.MapFakultasToResponse(pegawai.Fakultas)
-	}
-
 	return resp
 }
 

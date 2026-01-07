@@ -39,7 +39,6 @@ func (s *ReviewerService) GetAllReviewers() ([]response.ReviewerResponse, error)
 			IDPegawai:   reviewer.IDPegawai,
 			NamaPegawai: reviewer.NamaPegawai,
 			EmailUmm:    reviewer.EmailUmm,
-			Keahlian:    reviewer.Keahlian,
 			IsActive:    reviewer.IsActive,
 			TglInsert:   reviewer.TglInsert,
 		})
@@ -134,7 +133,6 @@ func (s *ReviewerService) ActivateReviewer(req *request.ActivateReviewerRequest,
 		IDPegawai:   reviewer.IDPegawai,
 		NamaPegawai: reviewer.NamaPegawai,
 		EmailUmm:    reviewer.EmailUmm,
-		Keahlian:    reviewer.Keahlian,
 		IsActive:    reviewer.IsActive,
 		TglInsert:   reviewer.TglInsert,
 	}, nil
@@ -169,7 +167,6 @@ func (s *ReviewerService) UpdateReviewer(id int, req *request.UpdateReviewerRequ
 		IDPegawai:   reviewer.IDPegawai,
 		NamaPegawai: reviewer.NamaPegawai,
 		EmailUmm:    reviewer.EmailUmm,
-		Keahlian:    reviewer.Keahlian,
 		IsActive:    req.IsActive,
 		TglInsert:   reviewer.TglInsert,
 	}, nil

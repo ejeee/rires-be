@@ -8,7 +8,6 @@ type ReviewerResponse struct {
 	IDPegawai   int        `json:"id_pegawai"`
 	NamaPegawai string     `json:"nama_pegawai"`
 	EmailUmm    string     `json:"email_umm"`
-	Keahlian    string     `json:"keahlian"`
 	IsActive    int        `json:"is_active"`
 	TglInsert   *time.Time `json:"tgl_insert"`
 }

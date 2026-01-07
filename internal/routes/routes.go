@@ -50,6 +50,72 @@ func Setup(app *fiber.App) {
 		})
 	})
 
+	// Database connection test endpoint
+	app.Get("/test-db", func(c *fiber.Ctx) error {
+		results := make(map[string]string)
+
+		// Test Main DB
+		if sqlDB, err := database.DB.DB(); err == nil {
+			if err := sqlDB.Ping(); err == nil {
+				results["main_db"] = "✅ Connected"
+			} else {
+				results["main_db"] = "❌ Ping failed: " + err.Error()
+			}
+		} else {
+			results["main_db"] = "❌ Connection failed: " + err.Error()
+		}
+
+		// Test NEOMAA
+		if database.DBNeomaa != nil {
+			if sqlDB, err := database.DBNeomaa.DB(); err == nil {
+				if err := sqlDB.Ping(); err == nil {
+					results["neomaa_db"] = "✅ Connected"
+				} else {
+					results["neomaa_db"] = "❌ Ping failed: " + err.Error()
+				}
+			} else {
+				results["neomaa_db"] = "❌ Connection failed: " + err.Error()
+			}
+		} else {
+			results["neomaa_db"] = "❌ Not initialized"
+		}
+
+		// Test NEOMAAREF
+		if database.DBNeomaaRef != nil {
+			if sqlDB, err := database.DBNeomaaRef.DB(); err == nil {
+				if err := sqlDB.Ping(); err == nil {
+					results["neomaaref_db"] = "✅ Connected"
+				} else {
+					results["neomaaref_db"] = "❌ Ping failed: " + err.Error()
+				}
+			} else {
+				results["neomaaref_db"] = "❌ Connection failed: " + err.Error()
+			}
+		} else {
+			results["neomaaref_db"] = "❌ Not initialized"
+		}
+
+		// Test SIMPEG
+		if database.DBSimpeg != nil {
+			if sqlDB, err := database.DBSimpeg.DB(); err == nil {
+				if err := sqlDB.Ping(); err == nil {
+					results["simpeg_db"] = "✅ Connected"
+				} else {
+					results["simpeg_db"] = "❌ Ping failed: " + err.Error()
+				}
+			} else {
+				results["simpeg_db"] = "❌ Connection failed: " + err.Error()
+			}
+		} else {
+			results["simpeg_db"] = "❌ Not initialized"
+		}
+
+		return c.JSON(fiber.Map{
+			"message": "Database Connection Test",
+			"results": results,
+		})
+	})
+
 	// API v1 routes
 	api := app.Group("/api/v1")
 
@@ -175,7 +241,9 @@ func Setup(app *fiber.App) {
 		tanggalAdmin.Delete("/:id", tanggalPendaftaranController.Delete)
 	}
 
-	// Pengajuan PKM routes - mahasiswa endpoints
+	// ============================================
+	// PENGAJUAN PKM - MAHASISWA ENDPOINTS
+	// ============================================
 	PengajuanController := controllers.NewPengajuanController()
 	pengajuanMhs := protected.Group("/pengajuan", middleware.RequireMahasiswa())
 	{
@@ -192,7 +260,9 @@ func Setup(app *fiber.App) {
 		pengajuanMhs.Get("/:id", PengajuanController.GetPengajuanDetail)
 	}
 
-	// Pengajuan PKM routes - admin endpoints
+	// ============================================
+	// PENGAJUAN PKM - ADMIN ENDPOINTS
+	// ============================================
 	pengajuanAdminController := controllers.NewPengajuanAdminController()
 	pengajuanAdmin := protected.Group("/admin/pengajuan", middleware.RequireAdmin())
 	{
@@ -206,5 +276,35 @@ func Setup(app *fiber.App) {
 		
 		// Announce Final Result
 		pengajuanAdmin.Post("/:id/announce", pengajuanAdminController.AnnounceFinalResult)
+	}
+
+	// ============================================
+	// REVIEWER MANAGEMENT - ADMIN ENDPOINTS
+	// ============================================
+	reviewerController := controllers.NewReviewerController()
+	reviewerAdmin := protected.Group("/admin/reviewers", middleware.RequireAdmin())
+	{
+		reviewerAdmin.Get("/", reviewerController.GetAllReviewers)
+		reviewerAdmin.Get("/available", reviewerController.GetAvailablePegawai)
+		reviewerAdmin.Post("/", reviewerController.ActivateReviewer)
+		reviewerAdmin.Put("/:id", reviewerController.UpdateReviewer)
+		reviewerAdmin.Delete("/:id", reviewerController.DeleteReviewer)
+	}
+
+	// ============================================
+	// PENGAJUAN PKM - REVIEWER ENDPOINTS
+	// ============================================
+	pengajuanReviewerController := controllers.NewPengajuanReviewerController()
+	pengajuanReviewer := protected.Group("/reviewer", middleware.RequireReviewer())
+	{
+		// My Assignments
+		pengajuanReviewer.Get("/my-assignments", pengajuanReviewerController.GetMyAssignments)
+		
+		// Detail
+		pengajuanReviewer.Get("/pengajuan/:id", pengajuanReviewerController.GetPengajuanDetail)
+		
+		// Review
+		pengajuanReviewer.Post("/judul/:id/review", pengajuanReviewerController.ReviewJudul)
+		pengajuanReviewer.Post("/proposal/:id/review", pengajuanReviewerController.ReviewProposal)
 	}
 }

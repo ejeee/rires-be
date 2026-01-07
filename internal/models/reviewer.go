@@ -8,7 +8,6 @@ type Reviewer struct {
 	IDPegawai    int        `gorm:"column:id_pegawai;type:int(11);uniqueIndex" json:"id_pegawai"`
 	NamaPegawai  string     `gorm:"column:nama_pegawai;type:varchar(255)" json:"nama_pegawai"`
 	EmailUmm     string     `gorm:"column:email_umm;type:varchar(255)" json:"email_umm"`
-	Keahlian     string     `gorm:"column:keahlian;type:text" json:"keahlian"`
 	IsActive     int        `gorm:"column:is_active;type:int(1);default:1" json:"is_active"` // 1=active, 0=inactive
 	Status       int        `gorm:"column:status;type:int(1);default:1" json:"status"`
 	Hapus        int        `gorm:"column:hapus;type:int(1);default:0" json:"-"`
