@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"time"
 
 	"rires-be/internal/dto/request"
@@ -259,6 +260,254 @@ func (s *PengajuanService) GetPengajuanDetail(idPengajuan int) (*response.Pengaj
 		reviewJudulHistory,
 		reviewProposalHistory,
 	), nil
+}
+
+// ========================================
+// GET MY SUBMISSIONS
+// ========================================
+
+// GetMySubmissions gets all submissions by authenticated mahasiswa (ketua)
+func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string) ([]response.PengajuanListResponse, error) {
+	// Build query
+	query := database.DB.Where("nim_ketua = ? AND hapus = ?", nimKetua, 0)
+
+	// Apply status filter
+	switch statusFilter {
+	case "pending":
+		query = query.Where("status_judul = ?", "PENDING")
+	case "acc":
+		query = query.Where("status_judul = ?", "ACC")
+	case "revisi":
+		query = query.Where("status_judul = ?", "REVISI")
+	case "tolak":
+		query = query.Where("status_judul = ?", "TOLAK")
+	// "all" = no filter
+	}
+
+	// Get pengajuan list
+	var pengajuanList []models.Pengajuan
+	if err := query.Order("tgl_insert DESC").Find(&pengajuanList).Error; err != nil {
+		return nil, err
+	}
+
+	// Build response list
+	result := make([]response.PengajuanListResponse, 0)
+	for _, pengajuan := range pengajuanList {
+		// Get kategori
+		var kategori models.KategoriPKM
+		database.DB.Where("id = ?", pengajuan.IDKategori).First(&kategori)
+
+		// Get mahasiswa ketua
+		ketua, _ := s.externalService.GetMahasiswaByNIM(pengajuan.NIMKetua)
+
+		// Count anggota
+		var anggotaCount int64
+		database.DB.Model(&models.PengajuanAnggota{}).
+			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
+			Count(&anggotaCount)
+
+		// Map to list response
+		listResp := s.mapper.MapPengajuanToListResponse(
+			&pengajuan,
+			ketua,
+			&kategori,
+			int(anggotaCount),
+		)
+
+		result = append(result, *listResp)
+	}
+
+	return result, nil
+}
+
+// ========================================
+// UPDATE JUDUL
+// ========================================
+
+// UpdateJudul updates/revises PKM title
+func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudulRequest, nimKetua string, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Check if user is ketua
+	if !pengajuan.IsOwner(nimKetua) {
+		return nil, errors.New("hanya ketua yang dapat merevisi judul")
+	}
+
+	// 3. Check if can revise (status must be REVISI)
+	if !pengajuan.CanReviseJudul() {
+		return nil, errors.New("judul hanya dapat direvisi jika status = REVISI")
+	}
+
+	// 4. START TRANSACTION
+	tx := database.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 5. Update judul
+	userUpdateStr := nimKetua
+	if userID > 0 {
+		userUpdateStr = fmt.Sprintf("%d", userID)
+	}
+
+	updates := map[string]interface{}{
+		"judul":       req.Judul,
+		"status_judul": "PENDING", // Reset to PENDING after revision
+		"user_update": userUpdateStr,
+	}
+
+	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 6. Delete old parameters
+	if err := tx.Where("id_pengajuan = ?", pengajuan.ID).Delete(&models.ParameterPKM{}).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 7. Create new parameters
+	for _, param := range req.Parameter {
+		paramModel := &models.ParameterPKM{
+			IDPengajuan: pengajuan.ID,
+			IDParameter: param.IDParameter,
+			Nilai:       param.Nilai,
+		}
+
+		if err := tx.Create(paramModel).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	// 8. COMMIT
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	// 9. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// UPLOAD PROPOSAL
+// ========================================
+
+// UploadProposal uploads proposal file
+func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Check if user is ketua
+	if !pengajuan.IsOwner(nimKetua) {
+		return nil, errors.New("hanya ketua yang dapat upload proposal")
+	}
+
+	// 3. Check if can upload (status_judul must be ACC)
+	if !pengajuan.CanUploadProposal() {
+		return nil, errors.New("proposal hanya dapat diupload jika judul sudah ACC")
+	}
+
+	// 4. Upload file using FileUploadService
+	filename, err := s.fileService.UploadProposal(file, pengajuan.KodePengajuan)
+	if err != nil {
+		return nil, fmt.Errorf("gagal upload file: %w", err)
+	}
+
+	// 5. Update pengajuan
+	userUpdateStr := nimKetua
+	if userID > 0 {
+		userUpdateStr = fmt.Sprintf("%d", userID)
+	}
+
+	updates := map[string]interface{}{
+		"file_proposal":   filename,
+		"status_proposal": "PENDING", // Set to PENDING after upload
+		"user_update":     userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		// Delete uploaded file if DB update fails
+		s.fileService.DeleteFile(filename)
+		return nil, err
+	}
+
+	// 6. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// REVISE PROPOSAL
+// ========================================
+
+// ReviseProposal revises proposal file
+func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Check if user is ketua
+	if !pengajuan.IsOwner(nimKetua) {
+		return nil, errors.New("hanya ketua yang dapat merevisi proposal")
+	}
+
+	// 3. Check if can revise (status_proposal must be REVISI)
+	if !pengajuan.CanReviseProposal() {
+		return nil, errors.New("proposal hanya dapat direvisi jika status = REVISI")
+	}
+
+	// 4. Delete old file
+	if pengajuan.FileProposal != "" {
+		s.fileService.DeleteFile(pengajuan.FileProposal)
+	}
+
+	// 5. Upload new file
+	filename, err := s.fileService.UploadProposal(file, pengajuan.KodePengajuan)
+	if err != nil {
+		return nil, fmt.Errorf("gagal upload file: %w", err)
+	}
+
+	// 6. Update pengajuan
+	userUpdateStr := nimKetua
+	if userID > 0 {
+		userUpdateStr = fmt.Sprintf("%d", userID)
+	}
+
+	updates := map[string]interface{}{
+		"file_proposal":   filename,
+		"status_proposal": "PENDING", // Reset to PENDING after revision
+		"user_update":     userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		// Delete uploaded file if DB update fails
+		s.fileService.DeleteFile(filename)
+		return nil, err
+	}
+
+	// 7. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
 }
 
 // ========================================

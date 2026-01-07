@@ -67,7 +67,7 @@ func (ctrl *PengajuanController) CreateJudulPKM(c *fiber.Ctx) error {
 	}
 
 	// 4. Get authenticated user (NIM ketua)
-	nimKetua := utils.GetCurrentUsername(c) // Assuming JWT contains NIM in username field
+	nimKetua := utils.GetCurrentUsername(c)
 
 	// 5. Call service
 	result, err := ctrl.service.CreateJudulPKM(&req, nimKetua)
@@ -92,21 +92,32 @@ func (ctrl *PengajuanController) CreateJudulPKM(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
-// @Param status query string false "Filter by status (all/draft/pending/acc/revisi/tolak)"
+// @Param status query string false "Filter by status (all/pending/acc/revisi/tolak)"
 // @Success 200 {object} response.APIResponse{data=[]response.PengajuanListResponse}
 // @Failure 401 {object} response.APIResponse
 // @Failure 500 {object} response.APIResponse
 // @Security BearerAuth
 // @Router /pengajuan/my-submissions [get]
 func (ctrl *PengajuanController) GetMySubmissions(c *fiber.Ctx) error {
-	// TODO: Implement list my submissions
-	// Get NIM from JWT
-	// Filter by NIM ketua
-	// Return list
+	// 1. Get authenticated user NIM
+	nimKetua := utils.GetCurrentUsername(c)
 
+	// 2. Get filter from query params
+	statusFilter := c.Query("status", "all")
+
+	// 3. Call service
+	result, err := ctrl.service.GetMySubmissions(nimKetua, statusFilter)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse(
+			"Failed to get submissions",
+			err.Error(),
+		))
+	}
+
+	// 4. Return success
 	return c.JSON(response.SuccessResponse(
-		"Feature coming soon",
-		nil,
+		"Submissions retrieved successfully",
+		result,
 	))
 }
 
@@ -177,17 +188,49 @@ func (ctrl *PengajuanController) GetPengajuanDetail(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Router /pengajuan/judul/{id} [put]
 func (ctrl *PengajuanController) UpdateJudul(c *fiber.Ctx) error {
-	// TODO: Implement update judul
-	// 1. Parse ID & request body
-	// 2. Validate request
-	// 3. Check if status = REVISI
-	// 4. Check if user is ketua
-	// 5. Update judul & parameter
-	// 6. Return updated detail
+	// 1. Parse ID from URL
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Invalid pengajuan ID",
+			err.Error(),
+		))
+	}
 
+	// 2. Parse request body
+	var req request.UpdateJudulRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Invalid request body",
+			err.Error(),
+		))
+	}
+
+	// 3. Validate request
+	if err := ctrl.validator.Struct(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Validation failed",
+			ctrl.formatValidationErrors(err),
+		))
+	}
+
+	// 4. Get authenticated user
+	nimKetua := utils.GetCurrentUsername(c)
+	userID := int(utils.GetCurrentUserID(c))
+
+	// 5. Call service
+	result, err := ctrl.service.UpdateJudul(id, &req, nimKetua, userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Failed to update judul",
+			err.Error(),
+		))
+	}
+
+	// 6. Return success
 	return c.JSON(response.SuccessResponse(
-		"Feature coming soon",
-		nil,
+		"Judul berhasil direvisi",
+		result,
 	))
 }
 
@@ -209,20 +252,41 @@ func (ctrl *PengajuanController) UpdateJudul(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Router /pengajuan/{id}/proposal [post]
 func (ctrl *PengajuanController) UploadProposal(c *fiber.Ctx) error {
-	// TODO: Implement upload proposal
-	// 1. Parse ID
-	// 2. Get file from form
-	// 3. Validate file (extension, size)
-	// 4. Check if status_judul = ACC
-	// 5. Check if user is ketua
-	// 6. Upload file using FileUploadService
-	// 7. Update pengajuan.file_proposal
-	// 8. Set status_proposal = PENDING
-	// 9. Return updated detail
+	// 1. Parse ID from URL
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Invalid pengajuan ID",
+			err.Error(),
+		))
+	}
 
+	// 2. Get file from form
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"File is required",
+			err.Error(),
+		))
+	}
+
+	// 3. Get authenticated user
+	nimKetua := utils.GetCurrentUsername(c)
+	userID := int(utils.GetCurrentUserID(c))
+
+	// 4. Call service
+	result, err := ctrl.service.UploadProposal(id, file, nimKetua, userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Failed to upload proposal",
+			err.Error(),
+		))
+	}
+
+	// 5. Return success
 	return c.JSON(response.SuccessResponse(
-		"Feature coming soon",
-		nil,
+		"Proposal berhasil diupload",
+		result,
 	))
 }
 
@@ -244,17 +308,41 @@ func (ctrl *PengajuanController) UploadProposal(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Router /pengajuan/{id}/proposal [put]
 func (ctrl *PengajuanController) ReviseProposal(c *fiber.Ctx) error {
-	// TODO: Implement revise proposal
-	// Similar to UploadProposal but:
-	// 1. Check if status_proposal = REVISI
-	// 2. Delete old file
-	// 3. Upload new file
-	// 4. Update file_proposal
-	// 5. Reset status_proposal = PENDING
+	// 1. Parse ID from URL
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Invalid pengajuan ID",
+			err.Error(),
+		))
+	}
 
+	// 2. Get file from form
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"File is required",
+			err.Error(),
+		))
+	}
+
+	// 3. Get authenticated user
+	nimKetua := utils.GetCurrentUsername(c)
+	userID := int(utils.GetCurrentUserID(c))
+
+	// 4. Call service
+	result, err := ctrl.service.ReviseProposal(id, file, nimKetua, userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Failed to revise proposal",
+			err.Error(),
+		))
+	}
+
+	// 5. Return success
 	return c.JSON(response.SuccessResponse(
-		"Feature coming soon",
-		nil,
+		"Proposal berhasil direvisi",
+		result,
 	))
 }
 

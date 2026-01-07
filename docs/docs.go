@@ -1744,7 +1744,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by status (all/draft/pending/acc/revisi/tolak)",
+                        "description": "Filter by status (all/pending/acc/revisi/tolak)",
                         "name": "status",
                         "in": "query"
                     }

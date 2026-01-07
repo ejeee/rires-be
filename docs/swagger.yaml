@@ -2220,7 +2220,7 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: Filter by status (all/draft/pending/acc/revisi/tolak)
+      - description: Filter by status (all/pending/acc/revisi/tolak)
         in: query
         name: status
         type: string
