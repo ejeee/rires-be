@@ -15,7 +15,15 @@ type UserAksesResponse struct {
 
 	// Relations (optional)
 	UserLevel *UserLevelResponse `json:"user_level,omitempty"`
-	Menu      *MenuResponse      `json:"menu,omitempty"`
+	Menu      *MenuSimpleResponse      `json:"menu,omitempty"`
+}
+
+// MenuSimpleResponse represents simplified menu info
+type MenuSimpleResponse struct {
+	ID       int    `json:"id"`
+	NamaMenu string `json:"nama_menu"`
+	URLMenu  string `json:"url_menu"`
+	Lucide     string `json:"lucide"`
 }
 
 // UserAksesGroupedResponse represents access grouped by user level

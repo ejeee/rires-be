@@ -5,7 +5,7 @@ import "time"
 // MenuResponse untuk response menu
 type MenuResponse struct {
 	ID         int        `json:"id"`
-	ParentID   int        `json:"parent_id"`
+	IDParent   int        `json:"id_parent"`
 	NamaMenu   string     `json:"nama_menu"`
 	URLMenu    string     `json:"url_menu"`
 	Lucide     string     `json:"lucide"`
@@ -20,7 +20,7 @@ type MenuResponse struct {
 // MenuTreeResponse untuk response menu dengan children (tree structure)
 type MenuTreeResponse struct {
 	ID         int                `json:"id"`
-	ParentID   int                `json:"parent_id"`
+	IDParent   int                `json:"id_parent"`
 	NamaMenu   string             `json:"nama_menu"`
 	URLMenu    string             `json:"url_menu"`
 	Lucide     string             `json:"lucide"`

@@ -2,7 +2,7 @@ package request
 
 // CreateMenuRequest untuk create menu
 type CreateMenuRequest struct {
-	ParentID int    `json:"parent_id"` // 0 untuk main menu, >0 untuk submenu
+	IDParent int    `json:"id_parent"` // 0 untuk main menu, >0 untuk submenu
 	NamaMenu string `json:"nama_menu" validate:"required,min=3,max=50"`
 	URLMenu  string `json:"url_menu" validate:"required,max=50"`
 	Lucide   string `json:"lucide" validate:"max=50"` // Icon name
@@ -12,7 +12,7 @@ type CreateMenuRequest struct {
 
 // UpdateMenuRequest untuk update menu
 type UpdateMenuRequest struct {
-	ParentID int    `json:"parent_id"`
+	IDParent int    `json:"id_parent"`
 	NamaMenu string `json:"nama_menu" validate:"required,min=3,max=50"`
 	URLMenu  string `json:"url_menu" validate:"required,max=50"`
 	Lucide   string `json:"lucide" validate:"max=50"`

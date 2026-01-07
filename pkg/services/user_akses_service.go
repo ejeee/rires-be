@@ -62,11 +62,11 @@ func (s *UserAksesService) GetAllAccesses(idUserLevel int, idMenu int) ([]respon
 
 		// Map Menu
 		if access.Menu != nil {
-			resp.Menu = &response.MenuResponse{
+			resp.Menu = &response.MenuSimpleResponse{
 				ID:       access.Menu.ID,
 				NamaMenu: access.Menu.NamaMenu,
 				URLMenu:  access.Menu.URLMenu,
-				Lucide:     access.Menu.Lucide,
+				Lucide:   access.Menu.Lucide,
 			}
 		}
 
@@ -134,7 +134,7 @@ func (s *UserAksesService) GetAccessDetail(id int) (*response.UserAksesResponse,
 
 	// Map Menu
 	if access.Menu != nil {
-		resp.Menu = &response.MenuResponse{
+		resp.Menu = &response.MenuSimpleResponse{
 			ID:       access.Menu.ID,
 			NamaMenu: access.Menu.NamaMenu,
 			URLMenu:  access.Menu.URLMenu,

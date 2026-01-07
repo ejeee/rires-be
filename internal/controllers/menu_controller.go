@@ -28,7 +28,7 @@ func NewMenuController() *MenuController {
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search by nama_menu"
-// @Param parent_id query int false "Filter by parent_id"
+// @Param id_parent query int false "Filter by id_parent"
 // @Success 200 {object} object{success=bool,message=string,data=response.MenuListResponse}
 // @Failure 500 {object} object{success=bool,message=string}
 // @Security BearerAuth
@@ -38,7 +38,7 @@ func (ctrl *MenuController) GetList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	perPage, _ := strconv.Atoi(c.Query("per_page", "10"))
 	search := c.Query("search", "")
-	parentID := c.Query("parent_id", "")
+	IDParent := c.Query("id_parent", "")
 
 	if page < 1 {
 		page = 1
@@ -58,8 +58,8 @@ func (ctrl *MenuController) GetList(c *fiber.Ctx) error {
 	}
 
 	// Filter by parent
-	if parentID != "" {
-		query = query.Where("parent_id = ?", parentID)
+	if IDParent != "" {
+		query = query.Where("id_parent = ?", IDParent)
 	}
 
 	// Count total
@@ -70,8 +70,12 @@ func (ctrl *MenuController) GetList(c *fiber.Ctx) error {
 
 	// Get data
 	var menus []models.Menu
-	if err := query.Order("parent_id ASC, urutan ASC").Offset(offset).Limit(perPage).Find(&menus).Error; err != nil {
-		return utils.InternalServerErrorResponse(c, "Failed to fetch data")
+	if err := query.Order("id_parent ASC, urutan ASC").Offset(offset).Limit(perPage).Find(&menus).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to fetch data",
+			"error":   err.Error(), // Show actual error
+		})
 	}
 
 	// Transform to response
@@ -84,7 +88,7 @@ func (ctrl *MenuController) GetList(c *fiber.Ctx) error {
 
 		data = append(data, response.MenuResponse{
 			ID:         menu.ID,
-			ParentID:   menu.ParentID,
+			IDParent:   menu.IDParent,
 			NamaMenu:   menu.NamaMenu,
 			URLMenu:    menu.URLMenu,
 			Lucide:     menu.Lucide,
@@ -124,7 +128,7 @@ func (ctrl *MenuController) GetTree(c *fiber.Ctx) error {
 	// Get all active menus
 	var menus []models.Menu
 	if err := database.DB.Where("hapus = ? AND status = ?", 0, 1).
-		Order("parent_id ASC, urutan ASC").
+		Order("id_parent ASC, urutan ASC").
 		Find(&menus).Error; err != nil {
 		return utils.InternalServerErrorResponse(c, "Failed to fetch data")
 	}
@@ -136,11 +140,11 @@ func (ctrl *MenuController) GetTree(c *fiber.Ctx) error {
 }
 
 // Helper function to build tree structure
-func buildMenuTree(menus []models.Menu, parentID int) []response.MenuTreeResponse {
+func buildMenuTree(menus []models.Menu, IDParent int) []response.MenuTreeResponse {
 	var tree []response.MenuTreeResponse
 
 	for _, menu := range menus {
-		if menu.ParentID == parentID {
+		if menu.IDParent == IDParent {
 			statusText := "Aktif"
 			if menu.Status == 2 {
 				statusText = "Tidak Aktif"
@@ -148,7 +152,7 @@ func buildMenuTree(menus []models.Menu, parentID int) []response.MenuTreeRespons
 
 			node := response.MenuTreeResponse{
 				ID:         menu.ID,
-				ParentID:   menu.ParentID,
+				IDParent:   menu.IDParent,
 				NamaMenu:   menu.NamaMenu,
 				URLMenu:    menu.URLMenu,
 				Lucide:     menu.Lucide,
@@ -194,7 +198,7 @@ func (ctrl *MenuController) GetByID(c *fiber.Ctx) error {
 
 	result := response.MenuResponse{
 		ID:         menu.ID,
-		ParentID:   menu.ParentID,
+		IDParent:   menu.IDParent,
 		NamaMenu:   menu.NamaMenu,
 		URLMenu:    menu.URLMenu,
 		Lucide:     menu.Lucide,
@@ -235,10 +239,10 @@ func (ctrl *MenuController) Create(c *fiber.Ctx) error {
 		return utils.BadRequestResponse(c, "Status must be 1 (active) or 2 (inactive)")
 	}
 
-	// Check if parent exists (if parent_id > 0)
-	if req.ParentID > 0 {
+	// Check if parent exists (if id_parent > 0)
+	if req.IDParent > 0 {
 		var parentMenu models.Menu
-		if err := database.DB.Where("id = ? AND hapus = ?", req.ParentID, 0).First(&parentMenu).Error; err != nil {
+		if err := database.DB.Where("id = ? AND hapus = ?", req.IDParent, 0).First(&parentMenu).Error; err != nil {
 			return utils.BadRequestResponse(c, "Parent menu not found")
 		}
 	}
@@ -246,7 +250,7 @@ func (ctrl *MenuController) Create(c *fiber.Ctx) error {
 	// Create
 	now := time.Now()
 	menu := models.Menu{
-		ParentID:   req.ParentID,
+		IDParent:   req.IDParent,
 		NamaMenu:   req.NamaMenu,
 		URLMenu:    req.URLMenu,
 		Lucide:     req.Lucide,
@@ -268,7 +272,7 @@ func (ctrl *MenuController) Create(c *fiber.Ctx) error {
 
 	result := response.MenuResponse{
 		ID:         menu.ID,
-		ParentID:   menu.ParentID,
+		IDParent:   menu.IDParent,
 		NamaMenu:   menu.NamaMenu,
 		URLMenu:    menu.URLMenu,
 		Lucide:     menu.Lucide,
@@ -322,20 +326,20 @@ func (ctrl *MenuController) Update(c *fiber.Ctx) error {
 	}
 
 	// Prevent circular parent reference
-	if req.ParentID == id {
+	if req.IDParent == id {
 		return utils.BadRequestResponse(c, "Menu cannot be its own parent")
 	}
 
-	// Check if parent exists (if parent_id > 0)
-	if req.ParentID > 0 {
+	// Check if parent exists (if id_parent > 0)
+	if req.IDParent > 0 {
 		var parentMenu models.Menu
-		if err := database.DB.Where("id = ? AND hapus = ?", req.ParentID, 0).First(&parentMenu).Error; err != nil {
+		if err := database.DB.Where("id = ? AND hapus = ?", req.IDParent, 0).First(&parentMenu).Error; err != nil {
 			return utils.BadRequestResponse(c, "Parent menu not found")
 		}
 	}
 
 	// Update
-	menu.ParentID = req.ParentID
+	menu.IDParent = req.IDParent
 	menu.NamaMenu = req.NamaMenu
 	menu.URLMenu = req.URLMenu
 	menu.Lucide = req.Lucide
@@ -354,7 +358,7 @@ func (ctrl *MenuController) Update(c *fiber.Ctx) error {
 
 	result := response.MenuResponse{
 		ID:         menu.ID,
-		ParentID:   menu.ParentID,
+		IDParent:   menu.IDParent,
 		NamaMenu:   menu.NamaMenu,
 		URLMenu:    menu.URLMenu,
 		Lucide:     menu.Lucide,
@@ -395,7 +399,7 @@ func (ctrl *MenuController) Delete(c *fiber.Ctx) error {
 
 	// Check if has children
 	var childCount int64
-	database.DB.Model(&models.Menu{}).Where("parent_id = ? AND hapus = ?", id, 0).Count(&childCount)
+	database.DB.Model(&models.Menu{}).Where("id_parent = ? AND hapus = ?", id, 0).Count(&childCount)
 	if childCount > 0 {
 		return utils.BadRequestResponse(c, "Cannot delete menu with children. Delete children first.")
 	}

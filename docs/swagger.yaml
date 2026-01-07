@@ -42,6 +42,18 @@ definitions:
     required:
     - id_pegawai
     type: object
+  request.BulkCreateUserAksesRequest:
+    properties:
+      id_user_level:
+        type: integer
+      menus:
+        items:
+          $ref: '#/definitions/request.MenuPermissionRequest'
+        type: array
+    required:
+    - id_user_level
+    - menus
+    type: object
   request.CreateKategoriPKMRequest:
     properties:
       nama_kategori:
@@ -202,6 +214,31 @@ definitions:
     - tanggal_mulai
     - tanggal_selesai
     type: object
+  request.CreateUserAksesRequest:
+    properties:
+      can_create:
+        enum:
+        - 0
+        - 1
+        type: integer
+      can_delete:
+        enum:
+        - 0
+        - 1
+        type: integer
+      can_update:
+        enum:
+        - 0
+        - 1
+        type: integer
+      id_menu:
+        type: integer
+      id_user_level:
+        type: integer
+    required:
+    - id_menu
+    - id_user_level
+    type: object
   request.CreateUserLevelRequest:
     properties:
       nama_level:
@@ -244,6 +281,28 @@ definitions:
     - password
     - status
     - username
+    type: object
+  request.MenuPermissionRequest:
+    properties:
+      can_create:
+        enum:
+        - 0
+        - 1
+        type: integer
+      can_delete:
+        enum:
+        - 0
+        - 1
+        type: integer
+      can_update:
+        enum:
+        - 0
+        - 1
+        type: integer
+      id_menu:
+        type: integer
+    required:
+    - id_menu
     type: object
   request.ParameterRequest:
     properties:
@@ -434,6 +493,24 @@ definitions:
     - tanggal_mulai
     - tanggal_selesai
     type: object
+  request.UpdateUserAksesRequest:
+    properties:
+      can_create:
+        enum:
+        - 0
+        - 1
+        type: integer
+      can_delete:
+        enum:
+        - 0
+        - 1
+        type: integer
+      can_update:
+        enum:
+        - 0
+        - 1
+        type: integer
+    type: object
   request.UpdateUserLevelRequest:
     properties:
       nama_level:
@@ -599,6 +676,17 @@ definitions:
       urutan:
         type: integer
       user_update:
+        type: string
+    type: object
+  response.MenuSimpleResponse:
+    properties:
+      icon:
+        type: string
+      id:
+        type: integer
+      nama_menu:
+        type: string
+      url_menu:
         type: string
     type: object
   response.MenuTreeResponse:
@@ -982,6 +1070,42 @@ definitions:
         type: string
       user_update:
         type: string
+    type: object
+  response.UserAksesGroupedResponse:
+    properties:
+      accesses:
+        items:
+          $ref: '#/definitions/response.UserAksesResponse'
+        type: array
+      id_user_level:
+        type: integer
+      nama_level:
+        type: string
+    type: object
+  response.UserAksesResponse:
+    properties:
+      can_create:
+        type: integer
+      can_delete:
+        type: integer
+      can_update:
+        type: integer
+      id:
+        type: integer
+      id_menu:
+        type: integer
+      id_user_level:
+        type: integer
+      menu:
+        $ref: '#/definitions/response.MenuSimpleResponse'
+      status:
+        type: integer
+      tgl_insert:
+        type: string
+      user_level:
+        allOf:
+        - $ref: '#/definitions/response.UserLevelResponse'
+        description: Relations (optional)
     type: object
   response.UserLevelListResponse:
     properties:
@@ -1566,6 +1690,332 @@ paths:
       summary: Get Available Pegawai
       tags:
       - Admin - Reviewer Management
+  /admin/user-akses:
+    get:
+      consumes:
+      - application/json
+      description: Admin gets all user accesses with optional filters
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Filter by user level
+        in: query
+        name: id_user_level
+        type: integer
+      - description: Filter by menu
+        in: query
+        name: id_menu
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.UserAksesResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All User Accesses
+      tags:
+      - Admin - User Access
+    post:
+      consumes:
+      - application/json
+      description: Admin creates new user access
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Access data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserAksesRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UserAksesResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create User Access
+      tags:
+      - Admin - User Access
+  /admin/user-akses/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Admin deletes access
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Access ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete User Access
+      tags:
+      - Admin - User Access
+    get:
+      consumes:
+      - application/json
+      description: Admin gets single access detail
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Access ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UserAksesResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Access Detail
+      tags:
+      - Admin - User Access
+    put:
+      consumes:
+      - application/json
+      description: Admin updates existing access
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Access ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateUserAksesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UserAksesResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update User Access
+      tags:
+      - Admin - User Access
+  /admin/user-akses/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Admin creates multiple accesses at once for a user level
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Bulk create data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.BulkCreateUserAksesRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.UserAksesResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Bulk Create User Accesses
+      tags:
+      - Admin - User Access
+  /admin/user-akses/by-level/{id_user_level}:
+    get:
+      consumes:
+      - application/json
+      description: Admin gets all accesses for a specific user level
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User Level ID
+        in: path
+        name: id_user_level
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UserAksesGroupedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Accesses by User Level
+      tags:
+      - Admin - User Access
   /auth/login/admin:
     post:
       consumes:
