@@ -241,9 +241,7 @@ func Setup(app *fiber.App) {
 		tanggalAdmin.Delete("/:id", tanggalPendaftaranController.Delete)
 	}
 
-	// ============================================
-	// PENGAJUAN PKM - MAHASISWA ENDPOINTS
-	// ============================================
+	// pengajuan pkm - mahasiswa endpoints
 	PengajuanController := controllers.NewPengajuanController()
 	pengajuanMhs := protected.Group("/pengajuan", middleware.RequireMahasiswa())
 	{
@@ -260,9 +258,7 @@ func Setup(app *fiber.App) {
 		pengajuanMhs.Get("/:id", PengajuanController.GetPengajuanDetail)
 	}
 
-	// ============================================
-	// PENGAJUAN PKM - ADMIN ENDPOINTS
-	// ============================================
+	// pengajuan pkm - admin endpoints
 	pengajuanAdminController := controllers.NewPengajuanAdminController()
 	pengajuanAdmin := protected.Group("/admin/pengajuan", middleware.RequireAdmin())
 	{
@@ -278,9 +274,7 @@ func Setup(app *fiber.App) {
 		pengajuanAdmin.Post("/:id/announce", pengajuanAdminController.AnnounceFinalResult)
 	}
 
-	// ============================================
-	// REVIEWER MANAGEMENT - ADMIN ENDPOINTS
-	// ============================================
+	// reviewer management - admin endpoints
 	reviewerController := controllers.NewReviewerController()
 	reviewerAdmin := protected.Group("/admin/reviewers", middleware.RequireAdmin())
 	{
@@ -291,9 +285,7 @@ func Setup(app *fiber.App) {
 		reviewerAdmin.Delete("/:id", reviewerController.DeleteReviewer)
 	}
 
-	// ============================================
-	// PENGAJUAN PKM - REVIEWER ENDPOINTS
-	// ============================================
+	// pengajuan pkm - reviewer endpoints
 	pengajuanReviewerController := controllers.NewPengajuanReviewerController()
 	pengajuanReviewer := protected.Group("/reviewer", middleware.RequireReviewer())
 	{
@@ -306,5 +298,18 @@ func Setup(app *fiber.App) {
 		// Review
 		pengajuanReviewer.Post("/judul/:id/review", pengajuanReviewerController.ReviewJudul)
 		pengajuanReviewer.Post("/proposal/:id/review", pengajuanReviewerController.ReviewProposal)
+	}
+
+	//user akses management routes
+	userAksesController := controllers.NewUserAksesController()
+	userAksesAdmin := protected.Group("/admin/user-akses", middleware.RequireAdmin())
+	{
+		userAksesAdmin.Get("/", userAksesController.GetAllAccesses)
+		userAksesAdmin.Get("/by-level/:id_user_level", userAksesController.GetAccessesByUserLevel)
+		userAksesAdmin.Get("/:id", userAksesController.GetAccessDetail)
+		userAksesAdmin.Post("/", userAksesController.CreateAccess)
+		userAksesAdmin.Post("/bulk", userAksesController.BulkCreateAccess)
+		userAksesAdmin.Put("/:id", userAksesController.UpdateAccess)
+		userAksesAdmin.Delete("/:id", userAksesController.DeleteAccess)
 	}
 }
