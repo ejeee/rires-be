@@ -146,9 +146,16 @@ func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
+	// Find user_id from db_user by NIM (mahasiswa might have local account)
+	var user models.User
+	var userID uint = 0
+	if err := database.DB.Where("nim = ? AND hapus = ?", mahasiswa.NIM, 0).First(&user).Error; err == nil {
+		userID = uint(user.ID)
+	}
+
 	// Generate JWT token with mahasiswa data
 	token, err := utils.GenerateTokenWithClaims(
-		0, // ID = 0 karena bukan dari DB lokal
+		userID, // Use user_id from db_user if exists, otherwise 0
 		mahasiswa.NIM,
 		"",
 		"mahasiswa",
@@ -282,7 +289,7 @@ func (ctrl *AuthController) GetCurrentUser(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, "Invalid or expired token")
 	}
 
-	// Get user type from claims struct (NOT map!)
+	// Get user type from claims
 	userType := claims.UserType
 	userID := int(claims.UserID)
 

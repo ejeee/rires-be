@@ -1545,6 +1545,517 @@ const docTemplate = `{
                 }
             }
         },
+        "/pengajuan/judul": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mahasiswa (ketua) creates new PKM title submission with team members",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mahasiswa - Pengajuan"
+                ],
+                "summary": "Create PKM Title Submission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Pengajuan data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreatePengajuanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pengajuan/judul/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Ketua revises PKM title (only allowed when status = REVISI)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mahasiswa - Pengajuan"
+                ],
+                "summary": "Update/Revise PKM Title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated title data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateJudulRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pengajuan/my-submissions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all submissions created by authenticated mahasiswa",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mahasiswa - Pengajuan"
+                ],
+                "summary": "Get My Submissions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (all/draft/pending/acc/revisi/tolak)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.PengajuanListResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pengajuan/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information of a pengajuan (only if user is part of the team)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mahasiswa - Pengajuan"
+                ],
+                "summary": "Get Pengajuan Detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/pengajuan/{id}/proposal": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Ketua revises proposal by uploading new file (only allowed when status_proposal = REVISI)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mahasiswa - Pengajuan"
+                ],
+                "summary": "Revise Proposal File",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Revised proposal file (PDF/DOC/DOCX, max 2.5MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Ketua uploads proposal PDF/DOC/DOCX (only allowed when status_judul = ACC)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mahasiswa - Pengajuan"
+                ],
+                "summary": "Upload Proposal File",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Proposal file (PDF/DOC/DOCX, max 2.5MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/status-review": {
             "get": {
                 "security": [
@@ -2286,6 +2797,181 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/test/code-generator": {
+            "get": {
+                "description": "Test generating kode pengajuan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Test Helpers"
+                ],
+                "summary": "Test Code Generator",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID Kategori PKM",
+                        "name": "id_kategori",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 2026,
+                        "description": "Tahun",
+                        "name": "tahun",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/test/external-data": {
+            "get": {
+                "description": "Test querying mahasiswa and pegawai from external databases",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Test Helpers"
+                ],
+                "summary": "Test External Data Service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "NIM Mahasiswa to test",
+                        "name": "nim",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID Pegawai to test",
+                        "name": "id_pegawai",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/test/file-upload": {
+            "post": {
+                "description": "Test file upload validation",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Test Helpers"
+                ],
+                "summary": "Test File Upload Service",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Proposal file (PDF/DOC/DOCX, max 2.5MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/test/status-validator": {
+            "get": {
+                "description": "Test status flow validation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Test Helpers"
+                ],
+                "summary": "Test Status Validator",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object"
+                                },
                                 "message": {
                                     "type": "string"
                                 },
@@ -3094,6 +3780,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "request.AnggotaRequest": {
+            "type": "object",
+            "required": [
+                "nim",
+                "urutan"
+            ],
+            "properties": {
+                "is_ketua": {
+                    "description": "1=ketua, 0=anggota",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
+                },
+                "nim": {
+                    "type": "string"
+                },
+                "urutan": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                }
+            }
+        },
         "request.CreateKategoriPKMRequest": {
             "type": "object",
             "required": [
@@ -3208,6 +3919,38 @@ const docTemplate = `{
                 "validasi": {
                     "description": "JSON string",
                     "type": "string"
+                }
+            }
+        },
+        "request.CreatePengajuanRequest": {
+            "type": "object",
+            "required": [
+                "anggota",
+                "id_kategori",
+                "judul"
+            ],
+            "properties": {
+                "anggota": {
+                    "type": "array",
+                    "maxItems": 5,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/request.AnggotaRequest"
+                    }
+                },
+                "id_kategori": {
+                    "type": "integer"
+                },
+                "judul": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "minLength": 10
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParameterRequest"
+                    }
                 }
             }
         },
@@ -3336,6 +4079,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ParameterRequest": {
+            "type": "object",
+            "required": [
+                "id_parameter",
+                "nilai"
+            ],
+            "properties": {
+                "id_parameter": {
+                    "type": "integer"
+                },
+                "nilai": {
+                    "type": "string"
+                }
+            }
+        },
         "request.ResetPasswordRequest": {
             "type": "object",
             "required": [
@@ -3345,6 +4103,25 @@ const docTemplate = `{
                 "new_password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "request.UpdateJudulRequest": {
+            "type": "object",
+            "required": [
+                "judul"
+            ],
+            "properties": {
+                "judul": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "minLength": 10
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParameterRequest"
+                    }
                 }
             }
         },
@@ -3570,6 +4347,33 @@ const docTemplate = `{
                 }
             }
         },
+        "response.APIResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {},
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response.FakultasResponse": {
+            "type": "object",
+            "properties": {
+                "kode": {
+                    "type": "string"
+                },
+                "nama_fakultas": {
+                    "type": "string"
+                },
+                "nama_singkat": {
+                    "type": "string"
+                }
+            }
+        },
         "response.KategoriPKMListResponse": {
             "type": "object",
             "properties": {
@@ -3617,6 +4421,44 @@ const docTemplate = `{
                 },
                 "user_update": {
                     "type": "string"
+                }
+            }
+        },
+        "response.KategoriResponse": {
+            "type": "object",
+            "properties": {
+                "deskripsi": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nama_kategori": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.MahasiswaResponse": {
+            "type": "object",
+            "properties": {
+                "angkatan": {
+                    "type": "integer"
+                },
+                "is_ketua": {
+                    "description": "Only present in team context",
+                    "type": "integer"
+                },
+                "nama": {
+                    "type": "string"
+                },
+                "nim": {
+                    "type": "string"
+                },
+                "no_hp": {
+                    "type": "string"
+                },
+                "program_studi": {
+                    "$ref": "#/definitions/response.ProdiResponse"
                 }
             }
         },
@@ -3814,6 +4656,225 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ParameterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "id_parameter": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "nilai": {
+                    "type": "string"
+                },
+                "tipe_input": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PegawaiResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "email_umm": {
+                    "type": "string"
+                },
+                "fakultas": {
+                    "$ref": "#/definitions/response.FakultasResponse"
+                },
+                "foto": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nama": {
+                    "type": "string"
+                },
+                "nama_lengkap": {
+                    "description": "With gelar",
+                    "type": "string"
+                },
+                "no_hp": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PengajuanListResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "judul": {
+                    "type": "string"
+                },
+                "jumlah_anggota": {
+                    "type": "integer"
+                },
+                "kategori": {
+                    "$ref": "#/definitions/response.KategoriResponse"
+                },
+                "ketua": {
+                    "$ref": "#/definitions/response.MahasiswaResponse"
+                },
+                "kode_pengajuan": {
+                    "type": "string"
+                },
+                "status_final": {
+                    "type": "string"
+                },
+                "status_judul": {
+                    "type": "string"
+                },
+                "status_proposal": {
+                    "type": "string"
+                },
+                "tahun": {
+                    "type": "integer"
+                },
+                "tgl_insert": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PengajuanResponse": {
+            "type": "object",
+            "properties": {
+                "anggota": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.MahasiswaResponse"
+                    }
+                },
+                "catatan_review_judul": {
+                    "type": "string"
+                },
+                "catatan_review_proposal": {
+                    "type": "string"
+                },
+                "file_proposal": {
+                    "description": "File",
+                    "type": "string"
+                },
+                "file_proposal_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "judul": {
+                    "type": "string"
+                },
+                "kategori": {
+                    "description": "Kategori",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.KategoriResponse"
+                        }
+                    ]
+                },
+                "ketua": {
+                    "description": "Team",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.MahasiswaResponse"
+                        }
+                    ]
+                },
+                "kode_pengajuan": {
+                    "type": "string"
+                },
+                "parameter": {
+                    "description": "Parameters (form answers)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParameterResponse"
+                    }
+                },
+                "review_judul_history": {
+                    "description": "Review History",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ReviewResponse"
+                    }
+                },
+                "review_proposal_history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ReviewResponse"
+                    }
+                },
+                "reviewer_judul": {
+                    "description": "Review Judul",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.PegawaiResponse"
+                        }
+                    ]
+                },
+                "reviewer_proposal": {
+                    "description": "Review Proposal",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.PegawaiResponse"
+                        }
+                    ]
+                },
+                "status_final": {
+                    "type": "string"
+                },
+                "status_judul": {
+                    "description": "Status",
+                    "type": "string"
+                },
+                "status_proposal": {
+                    "type": "string"
+                },
+                "tahun": {
+                    "type": "integer"
+                },
+                "tgl_insert": {
+                    "description": "Timestamps",
+                    "type": "string"
+                },
+                "tgl_review_judul": {
+                    "type": "string"
+                },
+                "tgl_review_proposal": {
+                    "type": "string"
+                },
+                "tgl_update": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ProdiResponse": {
+            "type": "object",
+            "properties": {
+                "fakultas": {
+                    "$ref": "#/definitions/response.FakultasResponse"
+                },
+                "jenjang": {
+                    "type": "string"
+                },
+                "kode": {
+                    "type": "string"
+                },
+                "nama_prodi": {
+                    "type": "string"
+                },
+                "nama_singkat": {
+                    "type": "string"
+                }
+            }
+        },
         "response.RegistrationStatusResponse": {
             "type": "object",
             "properties": {
@@ -3830,6 +4891,31 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tanggal_selesai": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReviewResponse": {
+            "type": "object",
+            "properties": {
+                "catatan": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "reviewer": {
+                    "$ref": "#/definitions/response.PegawaiResponse"
+                },
+                "status_review": {
+                    "description": "PENDING, ON_REVIEW, ACC, REVISI, TOLAK",
+                    "type": "string"
+                },
+                "tgl_review": {
+                    "type": "string"
+                },
+                "tipe_review": {
+                    "description": "JUDUL or PROPOSAL",
                     "type": "string"
                 }
             }

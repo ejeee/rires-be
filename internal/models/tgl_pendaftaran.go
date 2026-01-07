@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// TanggalPendaftaran represents db_tanggal_pendaftaran table
+// TanggalPendaftaran represents db_tgl_pendaftaran table
 type TanggalPendaftaran struct {
 	ID              int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	TanggalMulai    time.Time  `gorm:"column:tanggal_mulai;type:datetime" json:"tanggal_mulai"`
@@ -18,7 +18,7 @@ type TanggalPendaftaran struct {
 
 // TableName specifies the table name for TanggalPendaftaran model
 func (TanggalPendaftaran) TableName() string {
-	return "db_tanggal_pendaftaran"
+	return "db_tgl_pendaftaran"
 }
 
 // IsOpen checks if registration is currently open

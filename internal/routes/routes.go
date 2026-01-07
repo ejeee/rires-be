@@ -174,4 +174,21 @@ func Setup(app *fiber.App) {
 		tanggalAdmin.Put("/:id", tanggalPendaftaranController.Update)
 		tanggalAdmin.Delete("/:id", tanggalPendaftaranController.Delete)
 	}
+
+	// Pengajuan PKM routes
+	PengajuanController := controllers.NewPengajuanController()
+	pengajuanMhs := protected.Group("/pengajuan", middleware.RequireMahasiswa())
+	{
+		// Judul PKM
+		pengajuanMhs.Post("/judul", PengajuanController.CreateJudulPKM)
+		pengajuanMhs.Put("/judul/:id", PengajuanController.UpdateJudul)
+		
+		// Proposal
+		pengajuanMhs.Post("/:id/proposal", PengajuanController.UploadProposal)
+		pengajuanMhs.Put("/:id/proposal", PengajuanController.ReviseProposal)
+		
+		// List & Detail
+		pengajuanMhs.Get("/my-submissions", PengajuanController.GetMySubmissions)
+		pengajuanMhs.Get("/:id", PengajuanController.GetPengajuanDetail)
+	}
 }

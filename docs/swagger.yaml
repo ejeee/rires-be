@@ -1,5 +1,23 @@
 basePath: /api/v1
 definitions:
+  request.AnggotaRequest:
+    properties:
+      is_ketua:
+        description: 1=ketua, 0=anggota
+        enum:
+        - 0
+        - 1
+        type: integer
+      nim:
+        type: string
+      urutan:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - nim
+    - urutan
+    type: object
   request.CreateKategoriPKMRequest:
     properties:
       nama_kategori:
@@ -86,6 +104,29 @@ definitions:
     - nama_parameter
     - status
     - tipe_input
+    type: object
+  request.CreatePengajuanRequest:
+    properties:
+      anggota:
+        items:
+          $ref: '#/definitions/request.AnggotaRequest'
+        maxItems: 5
+        minItems: 1
+        type: array
+      id_kategori:
+        type: integer
+      judul:
+        maxLength: 500
+        minLength: 10
+        type: string
+      parameter:
+        items:
+          $ref: '#/definitions/request.ParameterRequest'
+        type: array
+    required:
+    - anggota
+    - id_kategori
+    - judul
     type: object
   request.CreateStatusReviewRequest:
     properties:
@@ -180,6 +221,16 @@ definitions:
     - status
     - username
     type: object
+  request.ParameterRequest:
+    properties:
+      id_parameter:
+        type: integer
+      nilai:
+        type: string
+    required:
+    - id_parameter
+    - nilai
+    type: object
   request.ResetPasswordRequest:
     properties:
       new_password:
@@ -187,6 +238,19 @@ definitions:
         type: string
     required:
     - new_password
+    type: object
+  request.UpdateJudulRequest:
+    properties:
+      judul:
+        maxLength: 500
+        minLength: 10
+        type: string
+      parameter:
+        items:
+          $ref: '#/definitions/request.ParameterRequest'
+        type: array
+    required:
+    - judul
     type: object
   request.UpdateKategoriPKMRequest:
     properties:
@@ -349,6 +413,24 @@ definitions:
     - status
     - username
     type: object
+  response.APIResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  response.FakultasResponse:
+    properties:
+      kode:
+        type: string
+      nama_fakultas:
+        type: string
+      nama_singkat:
+        type: string
+    type: object
   response.KategoriPKMListResponse:
     properties:
       data:
@@ -381,6 +463,31 @@ definitions:
         type: string
       user_update:
         type: string
+    type: object
+  response.KategoriResponse:
+    properties:
+      deskripsi:
+        type: string
+      id:
+        type: integer
+      nama_kategori:
+        type: string
+    type: object
+  response.MahasiswaResponse:
+    properties:
+      angkatan:
+        type: integer
+      is_ketua:
+        description: Only present in team context
+        type: integer
+      nama:
+        type: string
+      nim:
+        type: string
+      no_hp:
+        type: string
+      program_studi:
+        $ref: '#/definitions/response.ProdiResponse'
     type: object
   response.MenuListResponse:
     properties:
@@ -511,6 +618,147 @@ definitions:
         description: JSON string
         type: string
     type: object
+  response.ParameterResponse:
+    properties:
+      id:
+        type: integer
+      id_parameter:
+        type: integer
+      label:
+        type: string
+      nilai:
+        type: string
+      tipe_input:
+        type: string
+    type: object
+  response.PegawaiResponse:
+    properties:
+      email:
+        type: string
+      email_umm:
+        type: string
+      fakultas:
+        $ref: '#/definitions/response.FakultasResponse'
+      foto:
+        type: string
+      id:
+        type: integer
+      nama:
+        type: string
+      nama_lengkap:
+        description: With gelar
+        type: string
+      no_hp:
+        type: string
+    type: object
+  response.PengajuanListResponse:
+    properties:
+      id:
+        type: integer
+      judul:
+        type: string
+      jumlah_anggota:
+        type: integer
+      kategori:
+        $ref: '#/definitions/response.KategoriResponse'
+      ketua:
+        $ref: '#/definitions/response.MahasiswaResponse'
+      kode_pengajuan:
+        type: string
+      status_final:
+        type: string
+      status_judul:
+        type: string
+      status_proposal:
+        type: string
+      tahun:
+        type: integer
+      tgl_insert:
+        type: string
+    type: object
+  response.PengajuanResponse:
+    properties:
+      anggota:
+        items:
+          $ref: '#/definitions/response.MahasiswaResponse'
+        type: array
+      catatan_review_judul:
+        type: string
+      catatan_review_proposal:
+        type: string
+      file_proposal:
+        description: File
+        type: string
+      file_proposal_url:
+        type: string
+      id:
+        type: integer
+      judul:
+        type: string
+      kategori:
+        allOf:
+        - $ref: '#/definitions/response.KategoriResponse'
+        description: Kategori
+      ketua:
+        allOf:
+        - $ref: '#/definitions/response.MahasiswaResponse'
+        description: Team
+      kode_pengajuan:
+        type: string
+      parameter:
+        description: Parameters (form answers)
+        items:
+          $ref: '#/definitions/response.ParameterResponse'
+        type: array
+      review_judul_history:
+        description: Review History
+        items:
+          $ref: '#/definitions/response.ReviewResponse'
+        type: array
+      review_proposal_history:
+        items:
+          $ref: '#/definitions/response.ReviewResponse'
+        type: array
+      reviewer_judul:
+        allOf:
+        - $ref: '#/definitions/response.PegawaiResponse'
+        description: Review Judul
+      reviewer_proposal:
+        allOf:
+        - $ref: '#/definitions/response.PegawaiResponse'
+        description: Review Proposal
+      status_final:
+        type: string
+      status_judul:
+        description: Status
+        type: string
+      status_proposal:
+        type: string
+      tahun:
+        type: integer
+      tgl_insert:
+        description: Timestamps
+        type: string
+      tgl_review_judul:
+        type: string
+      tgl_review_proposal:
+        type: string
+      tgl_update:
+        type: string
+    type: object
+  response.ProdiResponse:
+    properties:
+      fakultas:
+        $ref: '#/definitions/response.FakultasResponse'
+      jenjang:
+        type: string
+      kode:
+        type: string
+      nama_prodi:
+        type: string
+      nama_singkat:
+        type: string
+    type: object
   response.RegistrationStatusResponse:
     properties:
       days_remaining:
@@ -522,6 +770,23 @@ definitions:
       tanggal_mulai:
         type: string
       tanggal_selesai:
+        type: string
+    type: object
+  response.ReviewResponse:
+    properties:
+      catatan:
+        type: string
+      id:
+        type: integer
+      reviewer:
+        $ref: '#/definitions/response.PegawaiResponse'
+      status_review:
+        description: PENDING, ON_REVIEW, ACC, REVISI, TOLAK
+        type: string
+      tgl_review:
+        type: string
+      tipe_review:
+        description: JUDUL or PROPOSAL
         type: string
     type: object
   response.StatusReviewListResponse:
@@ -1668,6 +1933,324 @@ paths:
       summary: Get Parameter Form by Kategori
       tags:
       - Parameter Form
+  /pengajuan/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information of a pengajuan (only if user is part of
+        the team)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Pengajuan Detail
+      tags:
+      - Mahasiswa - Pengajuan
+  /pengajuan/{id}/proposal:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Ketua uploads proposal PDF/DOC/DOCX (only allowed when status_judul
+        = ACC)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Proposal file (PDF/DOC/DOCX, max 2.5MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload Proposal File
+      tags:
+      - Mahasiswa - Pengajuan
+    put:
+      consumes:
+      - multipart/form-data
+      description: Ketua revises proposal by uploading new file (only allowed when
+        status_proposal = REVISI)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Revised proposal file (PDF/DOC/DOCX, max 2.5MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Revise Proposal File
+      tags:
+      - Mahasiswa - Pengajuan
+  /pengajuan/judul:
+    post:
+      consumes:
+      - application/json
+      description: Mahasiswa (ketua) creates new PKM title submission with team members
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePengajuanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create PKM Title Submission
+      tags:
+      - Mahasiswa - Pengajuan
+  /pengajuan/judul/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Ketua revises PKM title (only allowed when status = REVISI)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated title data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateJudulRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update/Revise PKM Title
+      tags:
+      - Mahasiswa - Pengajuan
+  /pengajuan/my-submissions:
+    get:
+      consumes:
+      - application/json
+      description: Get all submissions created by authenticated mahasiswa
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Filter by status (all/draft/pending/acc/revisi/tolak)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.PengajuanListResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get My Submissions
+      tags:
+      - Mahasiswa - Pengajuan
   /status-review:
     get:
       consumes:
@@ -2146,6 +2729,120 @@ paths:
       summary: Get Active Registration Period
       tags:
       - Tanggal Pendaftaran
+  /test/code-generator:
+    get:
+      consumes:
+      - application/json
+      description: Test generating kode pengajuan
+      parameters:
+      - default: 1
+        description: ID Kategori PKM
+        in: query
+        name: id_kategori
+        type: integer
+      - default: 2026
+        description: Tahun
+        in: query
+        name: tahun
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Test Code Generator
+      tags:
+      - Test Helpers
+  /test/external-data:
+    get:
+      consumes:
+      - application/json
+      description: Test querying mahasiswa and pegawai from external databases
+      parameters:
+      - description: NIM Mahasiswa to test
+        in: query
+        name: nim
+        type: string
+      - description: ID Pegawai to test
+        in: query
+        name: id_pegawai
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Test External Data Service
+      tags:
+      - Test Helpers
+  /test/file-upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Test file upload validation
+      parameters:
+      - description: Proposal file (PDF/DOC/DOCX, max 2.5MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Test File Upload Service
+      tags:
+      - Test Helpers
+  /test/status-validator:
+    get:
+      consumes:
+      - application/json
+      description: Test status flow validation
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Test Status Validator
+      tags:
+      - Test Helpers
   /user-levels:
     get:
       consumes:
