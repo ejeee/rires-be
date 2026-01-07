@@ -1,55 +1,66 @@
-# Rires Backend
+# RIRES Backend API
 
-REST API menggunakan **Go 1.25.5**, **Fiber v2**, **GORM**, dan **MySQL**.
+REST API untuk sistem **Program Kreativitas Mahasiswa (PKM)** Universitas Muhammadiyah Malang menggunakan **Go 1.23**, **Fiber v2**, **GORM**, dan **MySQL**.
 
 ## 🚀 Tech Stack
 
-- **Go 1.25.5** - Programming language
+- **Go 1.23+** - Programming language
 - **Fiber v2** - Web framework (Express-like)
 - **GORM** - ORM untuk MySQL
-- **JWT** - Authentication
-- **MySQL** - Database
+- **JWT** - Authentication & Authorization
+- **MySQL** - Main database + External databases (NEOMAA, SIMPEG)
+- **Go Validator** - Request validation
 
 ## 📁 Struktur Project
 
 ```
-golang-api-tutorial/
-├── cmd/api/              # Entry point aplikasi
-├── config/               # Konfigurasi & environment
+rires-be/
+├── cmd/api/                    # Entry point aplikasi
+├── config/                     # Konfigurasi & environment
 ├── internal/
-│   ├── controllers/      # HTTP handlers
-│   ├── models/          # Database models
-│   └── routes/          # Route definitions
+│   ├── controllers/            # HTTP handlers (17 files)
+│   ├── dto/
+│   │   ├── request/            # Request DTOs (10 files)
+│   │   └── response/           # Response DTOs (11 files)
+│   ├── middleware/             # JWT & role-based middleware
+│   ├── models/                 # Database models (15 files)
+│   ├── routes/                 # Route definitions
+│   └── services/               # Business logic (4 files)
 └── pkg/
-    ├── database/        # Database connection
-    ├── middleware/      # Middleware (JWT, logger, etc)
-    └── utils/           # Helper functions
+    ├── database/               # Database connections (4 DBs)
+    ├── services/               # External services
+    └── utils/                  # Helper functions
 ```
 
-## ⚙️ Setup
+## ⚙️ Setup & Installation
 
-1. Clone repository
-2. Copy `.env.example` ke `.env` dan sesuaikan konfigurasi
-3. Buat database MySQL dengan nama sesuai di `.env`
-4. Install dependencies:
+1. **Clone repository**
+   ```bash
+   git clone <repository-url>
+   cd rires-be
+   ```
+
+2. **Install dependencies**
    ```bash
    go mod download
    ```
-5. Jalankan aplikasi:
+
+3. **Setup environment**
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Run application**
    ```bash
    go run cmd/api/main.go
    ```
 
-## 🔌 API Endpoints
+## 🔌 API Endpoints (27+)
 
-### Authentication
-- `POST /api/auth/register` - Register user baru
-- `POST /api/auth/login` - Login user
+See detailed documentation in the codebase or API docs.
 
-### Users (Protected)
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update user profile
+## 📜 License
 
-## 📝 License
+MIT License
 
-MIT
+---
