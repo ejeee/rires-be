@@ -256,6 +256,31 @@ definitions:
     required:
     - new_password
     type: object
+  request.ReviewJudulRequest:
+    properties:
+      catatan:
+        minLength: 10
+        type: string
+      id_status_review:
+        description: FK to db_status_review (1=PENDING, 2=ON_REVIEW, 3=ACC, 4=REVISI,
+          5=TOLAK)
+        type: integer
+    required:
+    - catatan
+    - id_status_review
+    type: object
+  request.ReviewProposalRequest:
+    properties:
+      catatan:
+        minLength: 10
+        type: string
+      id_status_review:
+        description: FK to db_status_review
+        type: integer
+    required:
+    - catatan
+    - id_status_review
+    type: object
   request.UpdateJudulRequest:
     properties:
       judul:
@@ -2565,6 +2590,216 @@ paths:
       summary: Get My Submissions
       tags:
       - Mahasiswa - Pengajuan PKM
+  /reviewer/judul/{id}/review:
+    post:
+      consumes:
+      - application/json
+      description: Reviewer submits review for PKM title (ACC/REVISI/TOLAK)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Review data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ReviewJudulRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Review PKM Title
+      tags:
+      - Reviewer - Pengajuan PKM
+  /reviewer/my-assignments:
+    get:
+      consumes:
+      - application/json
+      description: Reviewer gets all pengajuan assigned to them
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: all
+        description: Filter by tipe (JUDUL/PROPOSAL/all)
+        in: query
+        name: tipe
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.PengajuanListResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get My Assignments (Reviewer)
+      tags:
+      - Reviewer - Pengajuan PKM
+  /reviewer/pengajuan/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Reviewer gets detail of pengajuan assigned to them
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Pengajuan Detail (Reviewer)
+      tags:
+      - Reviewer - Pengajuan PKM
+  /reviewer/proposal/{id}/review:
+    post:
+      consumes:
+      - application/json
+      description: Reviewer submits review for PKM proposal (ACC/REVISI/TOLAK)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Review data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ReviewProposalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Review PKM Proposal
+      tags:
+      - Reviewer - Pengajuan PKM
   /status-review:
     get:
       consumes:

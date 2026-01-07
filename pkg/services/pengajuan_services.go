@@ -129,7 +129,7 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 		Status:        1,
 		Hapus:         0,
 		TglInsert:     &now,
-		UserUpdate:    nimKetua,
+		UserUpdate:    nimKetua, // Store NIM for mahasiswa
 	}
 
 	if err := tx.Create(pengajuan).Error; err != nil {
@@ -356,9 +356,9 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 
 	// 5. Update judul
 	updates := map[string]interface{}{
-		"judul":       req.Judul,
+		"judul":        req.Judul,
 		"status_judul": "PENDING", // Reset to PENDING after revision
-		"user_update": nimKetua,
+		"user_update":  nimKetua,
 	}
 
 	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -718,6 +718,234 @@ func (s *PengajuanService) AnnounceFinalResult(idPengajuan int, statusFinal stri
 	}
 
 	// 4. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// REVIEWER - GET MY ASSIGNMENTS
+// ========================================
+
+// GetMyAssignments gets all pengajuan assigned to reviewer (pegawai)
+func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]response.PengajuanListResponse, error) {
+	// Note: userID here is from db_user
+	// We need to find corresponding pegawai.id from SIMPEG
+	
+	// For now, assume userID directly maps to pegawai.id
+	// In production, you might need to join db_user with pegawai table
+	idPegawai := userID
+
+	// Build query based on tipe filter
+	var pengajuanList []models.Pengajuan
+	query := database.DB.Where("hapus = ?", 0)
+
+	switch tipeFilter {
+	case "JUDUL":
+		query = query.Where("id_pegawai_reviewer_judul = ?", idPegawai)
+	case "PROPOSAL":
+		query = query.Where("id_pegawai_reviewer_proposal = ?", idPegawai)
+	default: // "all"
+		query = query.Where("id_pegawai_reviewer_judul = ? OR id_pegawai_reviewer_proposal = ?", idPegawai, idPegawai)
+	}
+
+	if err := query.Order("tgl_insert DESC").Find(&pengajuanList).Error; err != nil {
+		return nil, err
+	}
+
+	// Build response list
+	result := make([]response.PengajuanListResponse, 0)
+	for _, pengajuan := range pengajuanList {
+		// Get kategori
+		var kategori models.KategoriPKM
+		database.DB.Where("id = ?", pengajuan.IDKategori).First(&kategori)
+
+		// Get mahasiswa ketua
+		ketua, _ := s.externalService.GetMahasiswaByNIM(pengajuan.NIMKetua)
+
+		// Count anggota
+		var anggotaCount int64
+		database.DB.Model(&models.PengajuanAnggota{}).
+			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
+			Count(&anggotaCount)
+
+		// Map to list response
+		listResp := s.mapper.MapPengajuanToListResponse(
+			&pengajuan,
+			ketua,
+			&kategori,
+			int(anggotaCount),
+		)
+
+		result = append(result, *listResp)
+	}
+
+	return result, nil
+}
+
+// ========================================
+// REVIEWER - REVIEW JUDUL
+// ========================================
+
+// ReviewJudul submits review for PKM title
+func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudulRequest, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Verify reviewer is assigned
+	idPegawai := userID // Assume userID maps to pegawai.id
+	if pengajuan.IDPegawaiReviewerJudul == nil || *pengajuan.IDPegawaiReviewerJudul != idPegawai {
+		return nil, errors.New("anda tidak memiliki akses untuk mereview pengajuan ini")
+	}
+
+	// 3. Check if status allows review (must be ON_REVIEW)
+	if pengajuan.StatusJudul != "ON_REVIEW" {
+		return nil, errors.New("pengajuan harus dalam status ON_REVIEW untuk dapat direview")
+	}
+
+	// 4. Get status review info
+	var statusReview models.StatusReview
+	if err := database.DB.Where("id = ?", req.IDStatusReview).First(&statusReview).Error; err != nil {
+		return nil, errors.New("status review tidak valid")
+	}
+
+	// 5. START TRANSACTION
+	tx := database.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 6. Create review record
+	now := time.Now()
+	review := &models.ReviewJudul{
+		IDPengajuan:      pengajuan.ID,
+		IDPegawai:        idPegawai,
+		IDStatusReview:   req.IDStatusReview,
+		Catatan:          req.Catatan,
+		TglReview:        &now,
+	}
+
+	if err := tx.Create(review).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 7. Update pengajuan status
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"status_judul":          statusReview.KodeStatus, // ACC, REVISI, or TOLAK
+		"catatan_review_judul":  req.Catatan,
+		"tgl_review_judul":      &now,
+		"user_update":           userUpdateStr,
+	}
+
+	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 8. Update plotting status to REVIEWED
+	tx.Model(&models.PlottingReviewer{}).
+		Where("id_pengajuan = ? AND id_pegawai = ? AND tipe = ?", pengajuan.ID, idPegawai, "JUDUL").
+		Update("status", 2) // 2 = REVIEWED
+
+	// 9. COMMIT
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	// 10. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// REVIEWER - REVIEW PROPOSAL
+// ========================================
+
+// ReviewProposal submits review for PKM proposal
+func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewProposalRequest, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Verify reviewer is assigned
+	idPegawai := userID // Assume userID maps to pegawai.id
+	if pengajuan.IDPegawaiReviewerProposal == nil || *pengajuan.IDPegawaiReviewerProposal != idPegawai {
+		return nil, errors.New("anda tidak memiliki akses untuk mereview pengajuan ini")
+	}
+
+	// 3. Check if status allows review (must be ON_REVIEW)
+	if pengajuan.StatusProposal != "ON_REVIEW" {
+		return nil, errors.New("proposal harus dalam status ON_REVIEW untuk dapat direview")
+	}
+
+	// 4. Get status review info
+	var statusReview models.StatusReview
+	if err := database.DB.Where("id = ?", req.IDStatusReview).First(&statusReview).Error; err != nil {
+		return nil, errors.New("status review tidak valid")
+	}
+
+	// 5. START TRANSACTION
+	tx := database.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 6. Create review record
+	now := time.Now()
+	review := &models.ReviewProposal{
+		IDPengajuan:      pengajuan.ID,
+		IDPegawai:        idPegawai,
+		IDStatusReview:   req.IDStatusReview,
+		Catatan:          req.Catatan,
+		TglReview:        &now,
+	}
+
+	if err := tx.Create(review).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 7. Update pengajuan status
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"status_proposal":          statusReview.KodeStatus, // ACC, REVISI, or TOLAK
+		"catatan_review_proposal":  req.Catatan,
+		"tgl_review_proposal":      &now,
+		"user_update":              userUpdateStr,
+	}
+
+	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 8. Update plotting status to REVIEWED
+	tx.Model(&models.PlottingReviewer{}).
+		Where("id_pengajuan = ? AND id_pegawai = ? AND tipe = ?", pengajuan.ID, idPegawai, "PROPOSAL").
+		Update("status", 2) // 2 = REVIEWED
+
+	// 9. COMMIT
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	// 10. Return updated detail
 	return s.GetPengajuanDetail(idPengajuan)
 }
 
