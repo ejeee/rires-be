@@ -45,7 +45,7 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 		return nil, err
 	}
 
-	// 2. Check if registration period is open
+	// 2. Check if registration period is open (temporarily returns nil)
 	if err := s.validator.CanSubmitPengajuan(); err != nil {
 		return nil, err
 	}
@@ -117,6 +117,7 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 
 	// 12. Create pengajuan
 	now := time.Now()
+	
 	pengajuan := &models.Pengajuan{
 		KodePengajuan: kodePengajuan,
 		NIMKetua:      ketuaNIM,
@@ -325,7 +326,7 @@ func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string
 // ========================================
 
 // UpdateJudul updates/revises PKM title
-func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudulRequest, nimKetua string, userID int) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudulRequest, nimKetua string) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -354,15 +355,10 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 	}()
 
 	// 5. Update judul
-	userUpdateStr := nimKetua
-	if userID > 0 {
-		userUpdateStr = fmt.Sprintf("%d", userID)
-	}
-
 	updates := map[string]interface{}{
 		"judul":       req.Judul,
 		"status_judul": "PENDING", // Reset to PENDING after revision
-		"user_update": userUpdateStr,
+		"user_update": nimKetua,
 	}
 
 	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -404,7 +400,7 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 // ========================================
 
 // UploadProposal uploads proposal file
-func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string, userID int) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -431,15 +427,10 @@ func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileH
 	}
 
 	// 5. Update pengajuan
-	userUpdateStr := nimKetua
-	if userID > 0 {
-		userUpdateStr = fmt.Sprintf("%d", userID)
-	}
-
 	updates := map[string]interface{}{
 		"file_proposal":   filename,
 		"status_proposal": "PENDING", // Set to PENDING after upload
-		"user_update":     userUpdateStr,
+		"user_update":     nimKetua,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -457,7 +448,7 @@ func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileH
 // ========================================
 
 // ReviseProposal revises proposal file
-func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string, userID int) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -489,15 +480,10 @@ func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileH
 	}
 
 	// 6. Update pengajuan
-	userUpdateStr := nimKetua
-	if userID > 0 {
-		userUpdateStr = fmt.Sprintf("%d", userID)
-	}
-
 	updates := map[string]interface{}{
 		"file_proposal":   filename,
 		"status_proposal": "PENDING", // Reset to PENDING after revision
-		"user_update":     userUpdateStr,
+		"user_update":     nimKetua,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -507,6 +493,231 @@ func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileH
 	}
 
 	// 7. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// ADMIN - GET ALL PENGAJUAN
+// ========================================
+
+// GetAllPengajuan gets all pengajuan with filters and pagination (admin only)
+func (s *PengajuanService) GetAllPengajuan(filters map[string]interface{}) ([]response.PengajuanListResponse, *response.PaginationResponse, error) {
+	// 1. Parse filters
+	page := filters["page"].(int)
+	perPage := filters["per_page"].(int)
+	statusJudul := filters["status_judul"].(string)
+	statusProposal := filters["status_proposal"].(string)
+	statusFinal := filters["status_final"].(string)
+	idKategori := filters["id_kategori"].(int)
+	tahun := filters["tahun"].(int)
+
+	// 2. Build query
+	query := database.DB.Where("hapus = ?", 0)
+
+	// Apply filters
+	if statusJudul != "" {
+		query = query.Where("status_judul = ?", statusJudul)
+	}
+	if statusProposal != "" {
+		query = query.Where("status_proposal = ?", statusProposal)
+	}
+	if statusFinal != "" {
+		query = query.Where("status_final = ?", statusFinal)
+	}
+	if idKategori > 0 {
+		query = query.Where("id_kategori = ?", idKategori)
+	}
+	if tahun > 0 {
+		query = query.Where("tahun = ?", tahun)
+	}
+
+	// 3. Count total records
+	var totalRecords int64
+	query.Model(&models.Pengajuan{}).Count(&totalRecords)
+
+	// 4. Apply pagination
+	offset := (page - 1) * perPage
+	query = query.Limit(perPage).Offset(offset).Order("tgl_insert DESC")
+
+	// 5. Get pengajuan list
+	var pengajuanList []models.Pengajuan
+	if err := query.Find(&pengajuanList).Error; err != nil {
+		return nil, nil, err
+	}
+
+	// 6. Build response list
+	result := make([]response.PengajuanListResponse, 0)
+	for _, pengajuan := range pengajuanList {
+		// Get kategori
+		var kategori models.KategoriPKM
+		database.DB.Where("id = ?", pengajuan.IDKategori).First(&kategori)
+
+		// Get mahasiswa ketua
+		ketua, _ := s.externalService.GetMahasiswaByNIM(pengajuan.NIMKetua)
+
+		// Count anggota
+		var anggotaCount int64
+		database.DB.Model(&models.PengajuanAnggota{}).
+			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
+			Count(&anggotaCount)
+
+		// Map to list response
+		listResp := s.mapper.MapPengajuanToListResponse(
+			&pengajuan,
+			ketua,
+			&kategori,
+			int(anggotaCount),
+		)
+
+		result = append(result, *listResp)
+	}
+
+	// 7. Build pagination response
+	paginationResp := response.NewPaginationResponse(page, perPage, totalRecords)
+
+	return result, paginationResp, nil
+}
+
+// ========================================
+// ADMIN - ASSIGN REVIEWER
+// ========================================
+
+// AssignReviewerJudul assigns reviewer for title review
+func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idPegawai int, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Validate pegawai exists
+	if !s.externalService.ValidatePegawaiExists(idPegawai) {
+		return nil, errors.New("pegawai/reviewer tidak ditemukan")
+	}
+
+	// 3. Check if status allows assignment (must be PENDING or ON_REVIEW)
+	if pengajuan.StatusJudul != "PENDING" && pengajuan.StatusJudul != "ON_REVIEW" {
+		return nil, errors.New("reviewer hanya dapat di-assign untuk pengajuan dengan status PENDING atau ON_REVIEW")
+	}
+
+	// 4. Update pengajuan
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"id_pegawai_reviewer_judul": idPegawai,
+		"status_judul":               "ON_REVIEW",
+		"user_update":                userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// 5. Create plotting record
+	plotting := &models.PlottingReviewer{
+		IDPengajuan: pengajuan.ID,
+		IDPegawai:   idPegawai,
+		Tipe:        "JUDUL",
+	}
+
+	database.DB.Create(plotting)
+
+	// 6. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// AssignReviewerProposal assigns reviewer for proposal review
+func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idPegawai int, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Validate pegawai exists
+	if !s.externalService.ValidatePegawaiExists(idPegawai) {
+		return nil, errors.New("pegawai/reviewer tidak ditemukan")
+	}
+
+	// 3. Check if proposal has been uploaded
+	if pengajuan.FileProposal == "" {
+		return nil, errors.New("proposal belum diupload")
+	}
+
+	// 4. Check if status allows assignment
+	if pengajuan.StatusProposal != "PENDING" && pengajuan.StatusProposal != "ON_REVIEW" {
+		return nil, errors.New("reviewer hanya dapat di-assign untuk proposal dengan status PENDING atau ON_REVIEW")
+	}
+
+	// 5. Update pengajuan
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"id_pegawai_reviewer_proposal": idPegawai,
+		"status_proposal":               "ON_REVIEW",
+		"user_update":                   userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// 6. Create plotting record
+	plotting := &models.PlottingReviewer{
+		IDPengajuan: pengajuan.ID,
+		IDPegawai:   idPegawai,
+		Tipe:        "PROPOSAL",
+	}
+
+	database.DB.Create(plotting)
+
+	// 7. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// ADMIN - ANNOUNCE FINAL RESULT
+// ========================================
+
+// AnnounceFinalResult announces final result (LOLOS/TIDAK_LOLOS)
+func (s *PengajuanService) AnnounceFinalResult(idPengajuan int, statusFinal string, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Validate both judul and proposal are reviewed (ACC)
+	if pengajuan.StatusJudul != "ACC" {
+		return nil, errors.New("judul harus ACC sebelum pengumuman final")
+	}
+
+	if pengajuan.StatusProposal != "ACC" {
+		return nil, errors.New("proposal harus ACC sebelum pengumuman final")
+	}
+
+	// 3. Update status final
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"status_final": statusFinal,
+		"user_update":  userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// 4. Return updated detail
 	return s.GetPengajuanDetail(idPengajuan)
 }
 

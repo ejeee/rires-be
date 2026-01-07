@@ -29,7 +29,7 @@ func NewPengajuanController() *PengajuanController {
 // CreateJudulPKM godoc
 // @Summary Create PKM Title Submission
 // @Description Mahasiswa (ketua) creates new PKM title submission with team members
-// @Tags Mahasiswa - Pengajuan
+// @Tags Mahasiswa - Pengajuan PKM
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -88,7 +88,7 @@ func (ctrl *PengajuanController) CreateJudulPKM(c *fiber.Ctx) error {
 // GetMySubmissions godoc
 // @Summary Get My Submissions
 // @Description Get all submissions created by authenticated mahasiswa
-// @Tags Mahasiswa - Pengajuan
+// @Tags Mahasiswa - Pengajuan PKM
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -124,7 +124,7 @@ func (ctrl *PengajuanController) GetMySubmissions(c *fiber.Ctx) error {
 // GetPengajuanDetail godoc
 // @Summary Get Pengajuan Detail
 // @Description Get detailed information of a pengajuan (only if user is part of the team)
-// @Tags Mahasiswa - Pengajuan
+// @Tags Mahasiswa - Pengajuan PKM
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -173,7 +173,7 @@ func (ctrl *PengajuanController) GetPengajuanDetail(c *fiber.Ctx) error {
 // UpdateJudul godoc
 // @Summary Update/Revise PKM Title
 // @Description Ketua revises PKM title (only allowed when status = REVISI)
-// @Tags Mahasiswa - Pengajuan
+// @Tags Mahasiswa - Pengajuan PKM
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -216,10 +216,9 @@ func (ctrl *PengajuanController) UpdateJudul(c *fiber.Ctx) error {
 
 	// 4. Get authenticated user
 	nimKetua := utils.GetCurrentUsername(c)
-	userID := int(utils.GetCurrentUserID(c))
 
 	// 5. Call service
-	result, err := ctrl.service.UpdateJudul(id, &req, nimKetua, userID)
+	result, err := ctrl.service.UpdateJudul(id, &req, nimKetua)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to update judul",
@@ -237,7 +236,7 @@ func (ctrl *PengajuanController) UpdateJudul(c *fiber.Ctx) error {
 // UploadProposal godoc
 // @Summary Upload Proposal File
 // @Description Ketua uploads proposal PDF/DOC/DOCX (only allowed when status_judul = ACC)
-// @Tags Mahasiswa - Pengajuan
+// @Tags Mahasiswa - Pengajuan PKM
 // @Accept multipart/form-data
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -272,10 +271,9 @@ func (ctrl *PengajuanController) UploadProposal(c *fiber.Ctx) error {
 
 	// 3. Get authenticated user
 	nimKetua := utils.GetCurrentUsername(c)
-	userID := int(utils.GetCurrentUserID(c))
 
 	// 4. Call service
-	result, err := ctrl.service.UploadProposal(id, file, nimKetua, userID)
+	result, err := ctrl.service.UploadProposal(id, file, nimKetua)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to upload proposal",
@@ -293,7 +291,7 @@ func (ctrl *PengajuanController) UploadProposal(c *fiber.Ctx) error {
 // ReviseProposal godoc
 // @Summary Revise Proposal File
 // @Description Ketua revises proposal by uploading new file (only allowed when status_proposal = REVISI)
-// @Tags Mahasiswa - Pengajuan
+// @Tags Mahasiswa - Pengajuan PKM
 // @Accept multipart/form-data
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -328,10 +326,9 @@ func (ctrl *PengajuanController) ReviseProposal(c *fiber.Ctx) error {
 
 	// 3. Get authenticated user
 	nimKetua := utils.GetCurrentUsername(c)
-	userID := int(utils.GetCurrentUserID(c))
 
 	// 4. Call service
-	result, err := ctrl.service.ReviseProposal(id, file, nimKetua, userID)
+	result, err := ctrl.service.ReviseProposal(id, file, nimKetua)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to revise proposal",

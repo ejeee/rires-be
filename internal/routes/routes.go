@@ -175,7 +175,7 @@ func Setup(app *fiber.App) {
 		tanggalAdmin.Delete("/:id", tanggalPendaftaranController.Delete)
 	}
 
-	// Pengajuan PKM routes
+	// Pengajuan PKM routes - mahasiswa endpoints
 	PengajuanController := controllers.NewPengajuanController()
 	pengajuanMhs := protected.Group("/pengajuan", middleware.RequireMahasiswa())
 	{
@@ -190,5 +190,21 @@ func Setup(app *fiber.App) {
 		// List & Detail
 		pengajuanMhs.Get("/my-submissions", PengajuanController.GetMySubmissions)
 		pengajuanMhs.Get("/:id", PengajuanController.GetPengajuanDetail)
+	}
+
+	// Pengajuan PKM routes - admin endpoints
+	pengajuanAdminController := controllers.NewPengajuanAdminController()
+	pengajuanAdmin := protected.Group("/admin/pengajuan", middleware.RequireAdmin())
+	{
+		// List & Detail
+		pengajuanAdmin.Get("/", pengajuanAdminController.GetAllPengajuan)
+		pengajuanAdmin.Get("/:id", pengajuanAdminController.GetPengajuanDetail)
+		
+		// Assign Reviewer
+		pengajuanAdmin.Post("/:id/assign-reviewer-judul", pengajuanAdminController.AssignReviewerJudul)
+		pengajuanAdmin.Post("/:id/assign-reviewer-proposal", pengajuanAdminController.AssignReviewerProposal)
+		
+		// Announce Final Result
+		pengajuanAdmin.Post("/:id/announce", pengajuanAdminController.AnnounceFinalResult)
 	}
 }

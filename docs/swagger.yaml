@@ -18,6 +18,23 @@ definitions:
     - nim
     - urutan
     type: object
+  request.AnnounceRequest:
+    properties:
+      status_final:
+        enum:
+        - LOLOS
+        - TIDAK_LOLOS
+        type: string
+    required:
+    - status_final
+    type: object
+  request.AssignReviewerRequest:
+    properties:
+      id_pegawai:
+        type: integer
+    required:
+    - id_pegawai
+    type: object
   request.CreateKategoriPKMRequest:
     properties:
       nama_kategori:
@@ -553,6 +570,27 @@ definitions:
       urutan:
         type: integer
     type: object
+  response.PaginatedResponse:
+    properties:
+      data: {}
+      pagination:
+        $ref: '#/definitions/response.PaginationResponse'
+    type: object
+  response.PaginationResponse:
+    properties:
+      current_page:
+        type: integer
+      has_next:
+        type: boolean
+      has_prev:
+        type: boolean
+      per_page:
+        type: integer
+      total_pages:
+        type: integer
+      total_records:
+        type: integer
+    type: object
   response.ParameterFormByKategoriResponse:
     properties:
       kategori_id:
@@ -963,6 +1001,282 @@ info:
   title: Student RIRES Backend API
   version: "1.0"
 paths:
+  /admin/pengajuan:
+    get:
+      consumes:
+      - application/json
+      description: Admin gets all pengajuan with filters and pagination
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Filter by status judul
+        in: query
+        name: status_judul
+        type: string
+      - description: Filter by status proposal
+        in: query
+        name: status_proposal
+        type: string
+      - description: Filter by status final
+        in: query
+        name: status_final
+        type: string
+      - description: Filter by kategori
+        in: query
+        name: id_kategori
+        type: integer
+      - description: Filter by tahun
+        in: query
+        name: tahun
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Pengajuan (Admin)
+      tags:
+      - Admin - Pengajuan PKM
+  /admin/pengajuan/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Admin gets full detail of any pengajuan
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Pengajuan Detail (Admin)
+      tags:
+      - Admin - Pengajuan PKM
+  /admin/pengajuan/{id}/announce:
+    post:
+      consumes:
+      - application/json
+      description: Admin announces final result (LOLOS/TIDAK_LOLOS)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Final result
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AnnounceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Announce Final Result
+      tags:
+      - Admin - Pengajuan PKM
+  /admin/pengajuan/{id}/assign-reviewer-judul:
+    post:
+      consumes:
+      - application/json
+      description: Admin assigns reviewer (pegawai) to review PKM title
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reviewer data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AssignReviewerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign Reviewer for Judul
+      tags:
+      - Admin - Pengajuan PKM
+  /admin/pengajuan/{id}/assign-reviewer-proposal:
+    post:
+      consumes:
+      - application/json
+      description: Admin assigns reviewer (pegawai) to review PKM proposal
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reviewer data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.AssignReviewerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign Reviewer for Proposal
+      tags:
+      - Admin - Pengajuan PKM
   /auth/login/admin:
     post:
       consumes:
@@ -1986,7 +2300,7 @@ paths:
       - BearerAuth: []
       summary: Get Pengajuan Detail
       tags:
-      - Mahasiswa - Pengajuan
+      - Mahasiswa - Pengajuan PKM
   /pengajuan/{id}/proposal:
     post:
       consumes:
@@ -2045,7 +2359,7 @@ paths:
       - BearerAuth: []
       summary: Upload Proposal File
       tags:
-      - Mahasiswa - Pengajuan
+      - Mahasiswa - Pengajuan PKM
     put:
       consumes:
       - multipart/form-data
@@ -2103,7 +2417,7 @@ paths:
       - BearerAuth: []
       summary: Revise Proposal File
       tags:
-      - Mahasiswa - Pengajuan
+      - Mahasiswa - Pengajuan PKM
   /pengajuan/judul:
     post:
       consumes:
@@ -2149,7 +2463,7 @@ paths:
       - BearerAuth: []
       summary: Create PKM Title Submission
       tags:
-      - Mahasiswa - Pengajuan
+      - Mahasiswa - Pengajuan PKM
   /pengajuan/judul/{id}:
     put:
       consumes:
@@ -2208,7 +2522,7 @@ paths:
       - BearerAuth: []
       summary: Update/Revise PKM Title
       tags:
-      - Mahasiswa - Pengajuan
+      - Mahasiswa - Pengajuan PKM
   /pengajuan/my-submissions:
     get:
       consumes:
@@ -2250,7 +2564,7 @@ paths:
       - BearerAuth: []
       summary: Get My Submissions
       tags:
-      - Mahasiswa - Pengajuan
+      - Mahasiswa - Pengajuan PKM
   /status-review:
     get:
       consumes:

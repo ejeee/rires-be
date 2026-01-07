@@ -18,6 +18,452 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/pengajuan": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin gets all pengajuan with filters and pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Pengajuan PKM"
+                ],
+                "summary": "Get All Pengajuan (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status judul",
+                        "name": "status_judul",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status proposal",
+                        "name": "status_proposal",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status final",
+                        "name": "status_final",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by kategori",
+                        "name": "id_kategori",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by tahun",
+                        "name": "tahun",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/pengajuan/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin gets full detail of any pengajuan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Pengajuan PKM"
+                ],
+                "summary": "Get Pengajuan Detail (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/pengajuan/{id}/announce": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin announces final result (LOLOS/TIDAK_LOLOS)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Pengajuan PKM"
+                ],
+                "summary": "Announce Final Result",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Final result",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AnnounceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/pengajuan/{id}/assign-reviewer-judul": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin assigns reviewer (pegawai) to review PKM title",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Pengajuan PKM"
+                ],
+                "summary": "Assign Reviewer for Judul",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reviewer data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AssignReviewerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/pengajuan/{id}/assign-reviewer-proposal": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin assigns reviewer (pegawai) to review PKM proposal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Pengajuan PKM"
+                ],
+                "summary": "Assign Reviewer for Proposal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pengajuan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reviewer data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AssignReviewerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PengajuanResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login/admin": {
             "post": {
                 "description": "Login untuk administrator dari database lokal",
@@ -1560,7 +2006,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mahasiswa - Pengajuan"
+                    "Mahasiswa - Pengajuan PKM"
                 ],
                 "summary": "Create PKM Title Submission",
                 "parameters": [
@@ -1636,7 +2082,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mahasiswa - Pengajuan"
+                    "Mahasiswa - Pengajuan PKM"
                 ],
                 "summary": "Update/Revise PKM Title",
                 "parameters": [
@@ -1731,7 +2177,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mahasiswa - Pengajuan"
+                    "Mahasiswa - Pengajuan PKM"
                 ],
                 "summary": "Get My Submissions",
                 "parameters": [
@@ -1801,7 +2247,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mahasiswa - Pengajuan"
+                    "Mahasiswa - Pengajuan PKM"
                 ],
                 "summary": "Get Pengajuan Detail",
                 "parameters": [
@@ -1887,7 +2333,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mahasiswa - Pengajuan"
+                    "Mahasiswa - Pengajuan PKM"
                 ],
                 "summary": "Revise Proposal File",
                 "parameters": [
@@ -1978,7 +2424,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Mahasiswa - Pengajuan"
+                    "Mahasiswa - Pengajuan PKM"
                 ],
                 "summary": "Upload Proposal File",
                 "parameters": [
@@ -3805,6 +4251,32 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AnnounceRequest": {
+            "type": "object",
+            "required": [
+                "status_final"
+            ],
+            "properties": {
+                "status_final": {
+                    "type": "string",
+                    "enum": [
+                        "LOLOS",
+                        "TIDAK_LOLOS"
+                    ]
+                }
+            }
+        },
+        "request.AssignReviewerRequest": {
+            "type": "object",
+            "required": [
+                "id_pegawai"
+            ],
+            "properties": {
+                "id_pegawai": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.CreateKategoriPKMRequest": {
             "type": "object",
             "required": [
@@ -4555,6 +5027,38 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "urutan": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "pagination": {
+                    "$ref": "#/definitions/response.PaginationResponse"
+                }
+            }
+        },
+        "response.PaginationResponse": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer"
+                },
+                "has_next": {
+                    "type": "boolean"
+                },
+                "has_prev": {
+                    "type": "boolean"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                },
+                "total_records": {
                     "type": "integer"
                 }
             }
