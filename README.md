@@ -8,7 +8,7 @@ REST API untuk sistem **Program Kreativitas Mahasiswa (PKM)** Universitas Muhamm
 - **Fiber v2** - Web framework (Express-like)
 - **GORM** - ORM untuk MySQL
 - **JWT** - Authentication & Authorization
-- **MySQL** - Main database + External databases (NEOMAA, SIMPEG)
+- **MySQL** - Main database + External databases (NEOMAA, NEOMAAREF, SIMPEG)
 - **Go Validator** - Request validation
 
 ## 📁 Struktur Project
@@ -16,18 +16,18 @@ REST API untuk sistem **Program Kreativitas Mahasiswa (PKM)** Universitas Muhamm
 ```
 rires-be/
 ├── cmd/api/                    # Entry point aplikasi
-├── config/                     # Konfigurasi & environment
+├── config/                     # Configuration & environment
 ├── internal/
-│   ├── controllers/            # HTTP handlers (17 files)
+│   ├── controllers/            # HTTP handlers
 │   ├── dto/
-│   │   ├── request/            # Request DTOs (10 files)
-│   │   └── response/           # Response DTOs (11 files)
+│   │   ├── request/            # Request DTOs
+│   │   └── response/           # Response DTOs
 │   ├── middleware/             # JWT & role-based middleware
-│   ├── models/                 # Database models (15 files)
+│   ├── models/                 # Database models
 │   ├── routes/                 # Route definitions
-│   └── services/               # Business logic (4 files)
+│   └── services/               # Business logic
 └── pkg/
-    ├── database/               # Database connections (4 DBs)
+    ├── database/               # Database connections
     ├── services/               # External services
     └── utils/                  # Helper functions
 ```
