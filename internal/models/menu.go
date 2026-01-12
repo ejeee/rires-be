@@ -5,7 +5,7 @@ import "time"
 // Menu represents db_menu table
 type Menu struct {
 	ID         int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	IDParent   int        `gorm:"column:parent_id;type:int;default:0" json:"id_parent"`
+	IDParent   int        `gorm:"column:id_parent;type:int;default:0" json:"id_parent"`
 	NamaMenu   string     `gorm:"column:nama_menu;type:varchar(50)" json:"nama_menu"`
 	URLMenu    string     `gorm:"column:url_menu;type:varchar(50)" json:"url_menu"`
 	Lucide     string     `gorm:"column:lucide;type:varchar(50)" json:"lucide"` // Icon name

@@ -2083,8 +2083,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Filter by parent_id",
-                        "name": "parent_id",
+                        "description": "Filter by id_parent",
+                        "name": "id_parent",
                         "in": "query"
                     }
                 ],
@@ -5564,6 +5564,10 @@ const docTemplate = `{
                 "url_menu"
             ],
             "properties": {
+                "id_parent": {
+                    "description": "0 untuk main menu, \u003e0 untuk submenu",
+                    "type": "integer"
+                },
                 "lucide": {
                     "description": "Icon name",
                     "type": "string",
@@ -5573,10 +5577,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3
-                },
-                "parent_id": {
-                    "description": "0 untuk main menu, \u003e0 untuk submenu",
-                    "type": "integer"
                 },
                 "status": {
                     "description": "1=active, 2=inactive",
@@ -5985,6 +5985,9 @@ const docTemplate = `{
                 "url_menu"
             ],
             "properties": {
+                "id_parent": {
+                    "type": "integer"
+                },
                 "lucide": {
                     "type": "string",
                     "maxLength": 50
@@ -5993,9 +5996,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3
-                },
-                "parent_id": {
-                    "type": "integer"
                 },
                 "status": {
                     "type": "integer",
@@ -6381,14 +6381,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "id_parent": {
+                    "type": "integer"
+                },
                 "lucide": {
                     "type": "string"
                 },
                 "nama_menu": {
                     "type": "string"
-                },
-                "parent_id": {
-                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"
@@ -6417,11 +6417,11 @@ const docTemplate = `{
         "response.MenuSimpleResponse": {
             "type": "object",
             "properties": {
-                "icon": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
+                },
+                "lucide": {
+                    "type": "string"
                 },
                 "nama_menu": {
                     "type": "string"
@@ -6443,14 +6443,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "id_parent": {
+                    "type": "integer"
+                },
                 "lucide": {
                     "type": "string"
                 },
                 "nama_menu": {
                     "type": "string"
-                },
-                "parent_id": {
-                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"

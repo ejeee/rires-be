@@ -2077,8 +2077,8 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Filter by parent_id",
-                        "name": "parent_id",
+                        "description": "Filter by id_parent",
+                        "name": "id_parent",
                         "in": "query"
                     }
                 ],
@@ -5558,6 +5558,10 @@
                 "url_menu"
             ],
             "properties": {
+                "id_parent": {
+                    "description": "0 untuk main menu, \u003e0 untuk submenu",
+                    "type": "integer"
+                },
                 "lucide": {
                     "description": "Icon name",
                     "type": "string",
@@ -5567,10 +5571,6 @@
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3
-                },
-                "parent_id": {
-                    "description": "0 untuk main menu, \u003e0 untuk submenu",
-                    "type": "integer"
                 },
                 "status": {
                     "description": "1=active, 2=inactive",
@@ -5979,6 +5979,9 @@
                 "url_menu"
             ],
             "properties": {
+                "id_parent": {
+                    "type": "integer"
+                },
                 "lucide": {
                     "type": "string",
                     "maxLength": 50
@@ -5987,9 +5990,6 @@
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3
-                },
-                "parent_id": {
-                    "type": "integer"
                 },
                 "status": {
                     "type": "integer",
@@ -6375,14 +6375,14 @@
                 "id": {
                     "type": "integer"
                 },
+                "id_parent": {
+                    "type": "integer"
+                },
                 "lucide": {
                     "type": "string"
                 },
                 "nama_menu": {
                     "type": "string"
-                },
-                "parent_id": {
-                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"
@@ -6411,11 +6411,11 @@
         "response.MenuSimpleResponse": {
             "type": "object",
             "properties": {
-                "icon": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
+                },
+                "lucide": {
+                    "type": "string"
                 },
                 "nama_menu": {
                     "type": "string"
@@ -6437,14 +6437,14 @@
                 "id": {
                     "type": "integer"
                 },
+                "id_parent": {
+                    "type": "integer"
+                },
                 "lucide": {
                     "type": "string"
                 },
                 "nama_menu": {
                     "type": "string"
-                },
-                "parent_id": {
-                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"

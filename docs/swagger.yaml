@@ -72,6 +72,9 @@ definitions:
     type: object
   request.CreateMenuRequest:
     properties:
+      id_parent:
+        description: 0 untuk main menu, >0 untuk submenu
+        type: integer
       lucide:
         description: Icon name
         maxLength: 50
@@ -80,9 +83,6 @@ definitions:
         maxLength: 50
         minLength: 3
         type: string
-      parent_id:
-        description: 0 untuk main menu, >0 untuk submenu
-        type: integer
       status:
         description: 1=active, 2=inactive
         enum:
@@ -377,6 +377,8 @@ definitions:
     type: object
   request.UpdateMenuRequest:
     properties:
+      id_parent:
+        type: integer
       lucide:
         maxLength: 50
         type: string
@@ -384,8 +386,6 @@ definitions:
         maxLength: 50
         minLength: 3
         type: string
-      parent_id:
-        type: integer
       status:
         enum:
         - 1
@@ -656,12 +656,12 @@ definitions:
     properties:
       id:
         type: integer
+      id_parent:
+        type: integer
       lucide:
         type: string
       nama_menu:
         type: string
-      parent_id:
-        type: integer
       status:
         type: integer
       status_text:
@@ -680,10 +680,10 @@ definitions:
     type: object
   response.MenuSimpleResponse:
     properties:
-      icon:
-        type: string
       id:
         type: integer
+      lucide:
+        type: string
       nama_menu:
         type: string
       url_menu:
@@ -697,12 +697,12 @@ definitions:
         type: array
       id:
         type: integer
+      id_parent:
+        type: integer
       lucide:
         type: string
       nama_menu:
         type: string
-      parent_id:
-        type: integer
       status:
         type: integer
       status_text:
@@ -2476,9 +2476,9 @@ paths:
         in: query
         name: search
         type: string
-      - description: Filter by parent_id
+      - description: Filter by id_parent
         in: query
-        name: parent_id
+        name: id_parent
         type: integer
       produces:
       - application/json
