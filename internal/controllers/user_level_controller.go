@@ -176,7 +176,6 @@ func (ctrl *UserLevelController) Create(c *fiber.Ctx) error {
 	now := time.Now()
 	userLevel := models.UserLevel{
 		NamaLevel:    req.NamaLevel,
-		IDConference: 0,
 		Status:       req.Status,
 		Hapus:        0,
 		TglInsert:    &now,
