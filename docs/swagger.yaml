@@ -193,26 +193,35 @@ definitions:
     - status
     - warna
     type: object
-  request.CreateTanggalPendaftaranRequest:
+  request.CreateTglSettingRequest:
     properties:
       keterangan:
         type: string
       status:
-        description: 1=enabled, 2=disabled
+        description: 1=aktif, 2=nonaktif
         enum:
         - 1
         - 2
         type: integer
-      tanggal_mulai:
-        description: 'Format: "2026-01-01 00:00:00"'
+      tgl_daftar_akhir:
+        description: 'Format: "2026-01-31"'
         type: string
-      tanggal_selesai:
-        description: 'Format: "2026-01-31 23:59:59"'
+      tgl_daftar_awal:
+        description: 'Format: "2026-01-01"'
+        type: string
+      tgl_pengumuman:
+        description: 'Format: "2026-03-01"'
+        type: string
+      tgl_review_akhir:
+        description: 'Format: "2026-02-28"'
+        type: string
+      tgl_review_awal:
+        description: 'Format: "2026-02-01"'
         type: string
     required:
     - status
-    - tanggal_mulai
-    - tanggal_selesai
+    - tgl_daftar_akhir
+    - tgl_daftar_awal
     type: object
   request.CreateUserAksesRequest:
     properties:
@@ -475,7 +484,7 @@ definitions:
     - status
     - warna
     type: object
-  request.UpdateTanggalPendaftaranRequest:
+  request.UpdateTglSettingRequest:
     properties:
       keterangan:
         type: string
@@ -484,14 +493,20 @@ definitions:
         - 1
         - 2
         type: integer
-      tanggal_mulai:
+      tgl_daftar_akhir:
         type: string
-      tanggal_selesai:
+      tgl_daftar_awal:
+        type: string
+      tgl_pengumuman:
+        type: string
+      tgl_review_akhir:
+        type: string
+      tgl_review_awal:
         type: string
     required:
     - status
-    - tanggal_mulai
-    - tanggal_selesai
+    - tgl_daftar_akhir
+    - tgl_daftar_awal
     type: object
   request.UpdateUserAksesRequest:
     properties:
@@ -947,9 +962,15 @@ definitions:
         type: boolean
       message:
         type: string
-      tanggal_mulai:
+      tgl_daftar_akhir:
         type: string
-      tanggal_selesai:
+      tgl_daftar_awal:
+        type: string
+      tgl_pengumuman:
+        type: string
+      tgl_review_akhir:
+        type: string
+      tgl_review_awal:
         type: string
     type: object
   response.ReviewResponse:
@@ -1023,11 +1044,11 @@ definitions:
       warna:
         type: string
     type: object
-  response.TanggalPendaftaranListResponse:
+  response.TglSettingListResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/response.TanggalPendaftaranResponse'
+          $ref: '#/definitions/response.TglSettingResponse'
         type: array
       page:
         type: integer
@@ -1038,10 +1059,10 @@ definitions:
       total_pages:
         type: integer
     type: object
-  response.TanggalPendaftaranResponse:
+  response.TglSettingResponse:
     properties:
       days_remaining:
-        description: Hari tersisa
+        description: Hari tersisa pendaftaran
         type: integer
       id:
         type: integer
@@ -1050,8 +1071,14 @@ definitions:
       is_active_text:
         description: '"Aktif" atau "Tidak Aktif"'
         type: string
-      is_open:
-        description: Currently open for registration?
+      is_announced:
+        description: After announcement?
+        type: boolean
+      is_reg_open:
+        description: Registration period open?
+        type: boolean
+      is_review_period:
+        description: In review period?
         type: boolean
       keterangan:
         type: string
@@ -1060,11 +1087,17 @@ definitions:
       status_text:
         description: '"Aktif" atau "Tidak Aktif"'
         type: string
-      tanggal_mulai:
+      tgl_daftar_akhir:
         type: string
-      tanggal_selesai:
+      tgl_daftar_awal:
         type: string
       tgl_insert:
+        type: string
+      tgl_pengumuman:
+        type: string
+      tgl_review_akhir:
+        type: string
+      tgl_review_awal:
         type: string
       tgl_update:
         type: string
@@ -3738,260 +3771,6 @@ paths:
       summary: Update Status Review
       tags:
       - Status Review
-  /tanggal-pendaftaran:
-    get:
-      consumes:
-      - application/json
-      description: Get list of registration periods with pagination (admin only)
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/response.TanggalPendaftaranListResponse'
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List Tanggal Pendaftaran
-      tags:
-      - Tanggal Pendaftaran
-    post:
-      consumes:
-      - application/json
-      description: Create new registration period and set as active (deactivate others)
-      parameters:
-      - description: Tanggal Pendaftaran Data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateTanggalPendaftaranRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/response.TanggalPendaftaranResponse'
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create Tanggal Pendaftaran
-      tags:
-      - Tanggal Pendaftaran
-  /tanggal-pendaftaran/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Soft delete registration period
-      parameters:
-      - description: Tanggal Pendaftaran ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete Tanggal Pendaftaran
-      tags:
-      - Tanggal Pendaftaran
-    get:
-      consumes:
-      - application/json
-      description: Get registration period detail by ID
-      parameters:
-      - description: Tanggal Pendaftaran ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/response.TanggalPendaftaranResponse'
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get Tanggal Pendaftaran by ID
-      tags:
-      - Tanggal Pendaftaran
-    put:
-      consumes:
-      - application/json
-      description: Update existing registration period
-      parameters:
-      - description: Tanggal Pendaftaran ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Tanggal Pendaftaran Data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.UpdateTanggalPendaftaranRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/response.TanggalPendaftaranResponse'
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update Tanggal Pendaftaran
-      tags:
-      - Tanggal Pendaftaran
-  /tanggal-pendaftaran/active:
-    get:
-      consumes:
-      - application/json
-      description: Get currently active registration period (for checking if registration
-        is open)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            properties:
-              data:
-                $ref: '#/definitions/response.RegistrationStatusResponse'
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            properties:
-              message:
-                type: string
-              success:
-                type: boolean
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get Active Registration Period
-      tags:
-      - Tanggal Pendaftaran
   /test/code-generator:
     get:
       consumes:
@@ -4106,6 +3885,261 @@ paths:
       summary: Test Status Validator
       tags:
       - Test Helpers
+  /tgl-setting:
+    get:
+      consumes:
+      - application/json
+      description: Get list of registration period settings with pagination (admin
+        only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TglSettingListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Tanggal Setting
+      tags:
+      - Tanggal Setting
+    post:
+      consumes:
+      - application/json
+      description: Create new registration period setting and set as active (deactivate
+        others)
+      parameters:
+      - description: Tanggal Setting Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTglSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TglSettingResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Tanggal Setting
+      tags:
+      - Tanggal Setting
+  /tgl-setting/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete registration period setting
+      parameters:
+      - description: Tanggal Setting ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Tanggal Setting
+      tags:
+      - Tanggal Setting
+    get:
+      consumes:
+      - application/json
+      description: Get registration period setting detail by ID
+      parameters:
+      - description: Tanggal Setting ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TglSettingResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Tanggal Setting by ID
+      tags:
+      - Tanggal Setting
+    put:
+      consumes:
+      - application/json
+      description: Update existing registration period setting
+      parameters:
+      - description: Tanggal Setting ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tanggal Setting Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTglSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.TglSettingResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Tanggal Setting
+      tags:
+      - Tanggal Setting
+  /tgl-setting/active:
+    get:
+      consumes:
+      - application/json
+      description: Get currently active registration period settings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.RegistrationStatusResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Active Registration Period
+      tags:
+      - Tanggal Setting
   /user-levels:
     get:
       consumes:

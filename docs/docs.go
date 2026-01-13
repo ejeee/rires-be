@@ -4083,406 +4083,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/tanggal-pendaftaran": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of registration periods with pagination (admin only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tanggal Pendaftaran"
-                ],
-                "summary": "List Tanggal Pendaftaran",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/response.TanggalPendaftaranListResponse"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create new registration period and set as active (deactivate others)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tanggal Pendaftaran"
-                ],
-                "summary": "Create Tanggal Pendaftaran",
-                "parameters": [
-                    {
-                        "description": "Tanggal Pendaftaran Data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateTanggalPendaftaranRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/response.TanggalPendaftaranResponse"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/tanggal-pendaftaran/active": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get currently active registration period (for checking if registration is open)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tanggal Pendaftaran"
-                ],
-                "summary": "Get Active Registration Period",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/response.RegistrationStatusResponse"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/tanggal-pendaftaran/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get registration period detail by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tanggal Pendaftaran"
-                ],
-                "summary": "Get Tanggal Pendaftaran by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Tanggal Pendaftaran ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/response.TanggalPendaftaranResponse"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update existing registration period",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tanggal Pendaftaran"
-                ],
-                "summary": "Update Tanggal Pendaftaran",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Tanggal Pendaftaran ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Tanggal Pendaftaran Data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateTanggalPendaftaranRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/response.TanggalPendaftaranResponse"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Soft delete registration period",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tanggal Pendaftaran"
-                ],
-                "summary": "Delete Tanggal Pendaftaran",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Tanggal Pendaftaran ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string"
-                                },
-                                "success": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/test/code-generator": {
             "get": {
                 "description": "Test generating kode pengajuan",
@@ -4646,6 +4246,406 @@ const docTemplate = `{
                                 "data": {
                                     "type": "object"
                                 },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tgl-setting": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of registration period settings with pagination (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanggal Setting"
+                ],
+                "summary": "List Tanggal Setting",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.TglSettingListResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create new registration period setting and set as active (deactivate others)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanggal Setting"
+                ],
+                "summary": "Create Tanggal Setting",
+                "parameters": [
+                    {
+                        "description": "Tanggal Setting Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateTglSettingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.TglSettingResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tgl-setting/active": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get currently active registration period settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanggal Setting"
+                ],
+                "summary": "Get Active Registration Period",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.RegistrationStatusResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tgl-setting/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get registration period setting detail by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanggal Setting"
+                ],
+                "summary": "Get Tanggal Setting by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tanggal Setting ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.TglSettingResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing registration period setting",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanggal Setting"
+                ],
+                "summary": "Update Tanggal Setting",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tanggal Setting ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tanggal Setting Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateTglSettingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.TglSettingResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft delete registration period setting",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanggal Setting"
+                ],
+                "summary": "Delete Tanggal Setting",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tanggal Setting ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
                                 "message": {
                                     "type": "string"
                                 },
@@ -5721,31 +5721,43 @@ const docTemplate = `{
                 }
             }
         },
-        "request.CreateTanggalPendaftaranRequest": {
+        "request.CreateTglSettingRequest": {
             "type": "object",
             "required": [
                 "status",
-                "tanggal_mulai",
-                "tanggal_selesai"
+                "tgl_daftar_akhir",
+                "tgl_daftar_awal"
             ],
             "properties": {
                 "keterangan": {
                     "type": "string"
                 },
                 "status": {
-                    "description": "1=enabled, 2=disabled",
+                    "description": "1=aktif, 2=nonaktif",
                     "type": "integer",
                     "enum": [
                         1,
                         2
                     ]
                 },
-                "tanggal_mulai": {
-                    "description": "Format: \"2026-01-01 00:00:00\"",
+                "tgl_daftar_akhir": {
+                    "description": "Format: \"2026-01-31\"",
                     "type": "string"
                 },
-                "tanggal_selesai": {
-                    "description": "Format: \"2026-01-31 23:59:59\"",
+                "tgl_daftar_awal": {
+                    "description": "Format: \"2026-01-01\"",
+                    "type": "string"
+                },
+                "tgl_pengumuman": {
+                    "description": "Format: \"2026-03-01\"",
+                    "type": "string"
+                },
+                "tgl_review_akhir": {
+                    "description": "Format: \"2026-02-28\"",
+                    "type": "string"
+                },
+                "tgl_review_awal": {
+                    "description": "Format: \"2026-02-01\"",
                     "type": "string"
                 }
             }
@@ -6114,12 +6126,12 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateTanggalPendaftaranRequest": {
+        "request.UpdateTglSettingRequest": {
             "type": "object",
             "required": [
                 "status",
-                "tanggal_mulai",
-                "tanggal_selesai"
+                "tgl_daftar_akhir",
+                "tgl_daftar_awal"
             ],
             "properties": {
                 "keterangan": {
@@ -6132,10 +6144,19 @@ const docTemplate = `{
                         2
                     ]
                 },
-                "tanggal_mulai": {
+                "tgl_daftar_akhir": {
                     "type": "string"
                 },
-                "tanggal_selesai": {
+                "tgl_daftar_awal": {
+                    "type": "string"
+                },
+                "tgl_pengumuman": {
+                    "type": "string"
+                },
+                "tgl_review_akhir": {
+                    "type": "string"
+                },
+                "tgl_review_awal": {
                     "type": "string"
                 }
             }
@@ -6826,10 +6847,19 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 },
-                "tanggal_mulai": {
+                "tgl_daftar_akhir": {
                     "type": "string"
                 },
-                "tanggal_selesai": {
+                "tgl_daftar_awal": {
+                    "type": "string"
+                },
+                "tgl_pengumuman": {
+                    "type": "string"
+                },
+                "tgl_review_akhir": {
+                    "type": "string"
+                },
+                "tgl_review_awal": {
                     "type": "string"
                 }
             }
@@ -6941,13 +6971,13 @@ const docTemplate = `{
                 }
             }
         },
-        "response.TanggalPendaftaranListResponse": {
+        "response.TglSettingListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.TanggalPendaftaranResponse"
+                        "$ref": "#/definitions/response.TglSettingResponse"
                     }
                 },
                 "page": {
@@ -6964,11 +6994,11 @@ const docTemplate = `{
                 }
             }
         },
-        "response.TanggalPendaftaranResponse": {
+        "response.TglSettingResponse": {
             "type": "object",
             "properties": {
                 "days_remaining": {
-                    "description": "Hari tersisa",
+                    "description": "Hari tersisa pendaftaran",
                     "type": "integer"
                 },
                 "id": {
@@ -6981,8 +7011,16 @@ const docTemplate = `{
                     "description": "\"Aktif\" atau \"Tidak Aktif\"",
                     "type": "string"
                 },
-                "is_open": {
-                    "description": "Currently open for registration?",
+                "is_announced": {
+                    "description": "After announcement?",
+                    "type": "boolean"
+                },
+                "is_reg_open": {
+                    "description": "Registration period open?",
+                    "type": "boolean"
+                },
+                "is_review_period": {
+                    "description": "In review period?",
                     "type": "boolean"
                 },
                 "keterangan": {
@@ -6995,13 +7033,22 @@ const docTemplate = `{
                     "description": "\"Aktif\" atau \"Tidak Aktif\"",
                     "type": "string"
                 },
-                "tanggal_mulai": {
+                "tgl_daftar_akhir": {
                     "type": "string"
                 },
-                "tanggal_selesai": {
+                "tgl_daftar_awal": {
                     "type": "string"
                 },
                 "tgl_insert": {
+                    "type": "string"
+                },
+                "tgl_pengumuman": {
+                    "type": "string"
+                },
+                "tgl_review_akhir": {
+                    "type": "string"
+                },
+                "tgl_review_awal": {
                     "type": "string"
                 },
                 "tgl_update": {

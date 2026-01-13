@@ -160,10 +160,10 @@ func (v *StatusValidator) ValidateNoDuplicateNIM(anggota []models.PengajuanAnggo
 
 // CanSubmitPengajuan checks if registration period is open
 func (v *StatusValidator) CanSubmitPengajuan() error {
-	// Check if tanggal_pendaftaran is active
-	var period models.TanggalPendaftaran
+	// Check if tgl_setting is active
+	var setting models.TglSetting
 	err := database.DB.Where("is_active = ? AND status = ? AND hapus = ?", 1, 1, 0).
-		First(&period).Error
+		First(&setting).Error
 
 	if err != nil {
 		return errors.New("pendaftaran PKM sedang ditutup")
@@ -172,12 +172,12 @@ func (v *StatusValidator) CanSubmitPengajuan() error {
 	now := time.Now()
 
 	// Check if current date is within the registration period
-	if now.Before(period.TanggalMulai) {
-		return errors.New("pendaftaran belum dibuka. Akan dibuka pada: " + period.TanggalMulai.Format("02 January 2006"))
+	if now.Before(setting.TglDaftarAwal) {
+		return errors.New("pendaftaran belum dibuka. Akan dibuka pada: " + setting.TglDaftarAwal.Format("02 January 2006"))
 	}
 
-	if now.After(period.TanggalSelesai) {
-		return errors.New("pendaftaran sudah ditutup pada: " + period.TanggalSelesai.Format("02 January 2006"))
+	if now.After(setting.TglDaftarAkhir) {
+		return errors.New("pendaftaran sudah ditutup pada: " + setting.TglDaftarAkhir.Format("02 January 2006"))
 	}
 
 	return nil

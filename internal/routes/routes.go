@@ -224,21 +224,21 @@ func Setup(app *fiber.App) {
 		users.Delete("/:id", userManagementController.Delete)
 	}
 
-	// Tanggal Pendaftaran routes
-	tanggalPendaftaranController := controllers.NewTanggalPendaftaranController()
+	// Tanggal Setting routes
+	tglSettingController := controllers.NewTglSettingController()
 	// Public endpoint - check if registration is open
-	tanggalPublic := protected.Group("/tanggal-pendaftaran")
+	tglSettingPublic := protected.Group("/tgl-setting")
 	{
-		tanggalPublic.Get("/active", tanggalPendaftaranController.GetActive) // All authenticated users can check
+		tglSettingPublic.Get("/active", tglSettingController.GetActive) // All authenticated users can check
 	}
 	// Admin only endpoints
-	tanggalAdmin := protected.Group("/tanggal-pendaftaran", middleware.RequireAdmin())
+	tglSettingAdmin := protected.Group("/tgl-setting", middleware.RequireAdmin())
 	{
-		tanggalAdmin.Get("/", tanggalPendaftaranController.GetList)
-		tanggalAdmin.Get("/:id", tanggalPendaftaranController.GetByID)
-		tanggalAdmin.Post("/", tanggalPendaftaranController.Create)
-		tanggalAdmin.Put("/:id", tanggalPendaftaranController.Update)
-		tanggalAdmin.Delete("/:id", tanggalPendaftaranController.Delete)
+		tglSettingAdmin.Get("/", tglSettingController.GetList)
+		tglSettingAdmin.Get("/:id", tglSettingController.GetByID)
+		tglSettingAdmin.Post("/", tglSettingController.Create)
+		tglSettingAdmin.Put("/:id", tglSettingController.Update)
+		tglSettingAdmin.Delete("/:id", tglSettingController.Delete)
 	}
 
 	// pengajuan pkm - mahasiswa endpoints
