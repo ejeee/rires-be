@@ -88,11 +88,11 @@ func (m *MapperService) MapPegawaiToResponse(pegawai *external.Pegawai) *respons
 	}
 
 	resp := &response.PegawaiResponse{
-		ID:            pegawai.ID,
-		Nama:          pegawai.NamaPegawai,
-		NamaLengkap:   pegawai.GetNamaLengkap(),
-		Email:         pegawai.Email,
-		HP:            pegawai.HP,
+		ID:          pegawai.ID,
+		Nama:        pegawai.NamaPegawai,
+		NamaLengkap: pegawai.GetNamaLengkap(),
+		Email:       pegawai.Email,
+		HP:          pegawai.HP,
 	}
 
 	return resp
@@ -205,6 +205,7 @@ func (m *MapperService) MapPengajuanToListResponse(
 	ketua *external.Mahasiswa,
 	kategori *models.KategoriPKM,
 	jumlahAnggota int,
+	reviewerProposal *external.Pegawai,
 ) *response.PengajuanListResponse {
 	if pengajuan == nil {
 		return nil
@@ -220,16 +221,29 @@ func (m *MapperService) MapPengajuanToListResponse(
 		StatusFinal:    pengajuan.StatusFinal,
 		JumlahAnggota:  jumlahAnggota,
 		TglInsert:      pengajuan.TglInsert,
+
+		// Flat fields
+		NIMKetua:        pengajuan.NIMKetua,
+		CatatanProposal: pengajuan.CatatanReviewProposal,
+		TanggalReview:   pengajuan.TglReviewProposal,
+		FileProposal:    pengajuan.FileProposal,
 	}
 
 	// Map kategori
 	if kategori != nil {
 		resp.Kategori = m.MapKategoriToResponse(kategori)
+		resp.NamaKategori = kategori.NamaKategori
 	}
 
 	// Map ketua
 	if ketua != nil {
 		resp.Ketua = m.MapMahasiswaToResponse(ketua, nil)
+		resp.NamaKetua = ketua.NamaSiswa
+	}
+
+	// Map reviewer proposal
+	if reviewerProposal != nil {
+		resp.NamaReviewer = reviewerProposal.GetNamaLengkap()
 	}
 
 	return resp
@@ -253,20 +267,20 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 	}
 
 	resp := &response.PengajuanResponse{
-		ID:                     pengajuan.ID,
-		KodePengajuan:          pengajuan.KodePengajuan,
-		Judul:                  pengajuan.Judul,
-		Tahun:                  pengajuan.Tahun,
-		StatusJudul:            pengajuan.StatusJudul,
-		StatusProposal:         pengajuan.StatusProposal,
-		StatusFinal:            pengajuan.StatusFinal,
-		FileProposal:           pengajuan.FileProposal,
-		CatatanReviewJudul:     pengajuan.CatatanReviewJudul,
-		TglReviewJudul:         pengajuan.TglReviewJudul,
-		CatatanReviewProposal:  pengajuan.CatatanReviewProposal,
-		TglReviewProposal:      pengajuan.TglReviewProposal,
-		TglInsert:              pengajuan.TglInsert,
-		TglUpdate:              pengajuan.TglUpdate,
+		ID:                    pengajuan.ID,
+		KodePengajuan:         pengajuan.KodePengajuan,
+		Judul:                 pengajuan.Judul,
+		Tahun:                 pengajuan.Tahun,
+		StatusJudul:           pengajuan.StatusJudul,
+		StatusProposal:        pengajuan.StatusProposal,
+		StatusFinal:           pengajuan.StatusFinal,
+		FileProposal:          pengajuan.FileProposal,
+		CatatanReviewJudul:    pengajuan.CatatanReviewJudul,
+		TglReviewJudul:        pengajuan.TglReviewJudul,
+		CatatanReviewProposal: pengajuan.CatatanReviewProposal,
+		TglReviewProposal:     pengajuan.TglReviewProposal,
+		TglInsert:             pengajuan.TglInsert,
+		TglUpdate:             pengajuan.TglUpdate,
 	}
 
 	// Map kategori
@@ -298,7 +312,7 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 				break
 			}
 		}
-		
+
 		if anggotaResp := m.MapMahasiswaToResponse(&mhs, anggotaModel); anggotaResp != nil {
 			resp.Anggota = append(resp.Anggota, *anggotaResp)
 		}

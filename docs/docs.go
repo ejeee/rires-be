@@ -6669,6 +6669,12 @@ const docTemplate = `{
         "response.PengajuanListResponse": {
             "type": "object",
             "properties": {
+                "catatan_proposal": {
+                    "type": "string"
+                },
+                "file_proposal": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -6687,6 +6693,19 @@ const docTemplate = `{
                 "kode_pengajuan": {
                     "type": "string"
                 },
+                "nama_kategori": {
+                    "type": "string"
+                },
+                "nama_ketua": {
+                    "type": "string"
+                },
+                "nama_reviewer": {
+                    "type": "string"
+                },
+                "nim_ketua": {
+                    "description": "Flat fields for admin list view",
+                    "type": "string"
+                },
                 "status_final": {
                     "type": "string"
                 },
@@ -6698,6 +6717,9 @@ const docTemplate = `{
                 },
                 "tahun": {
                     "type": "integer"
+                },
+                "tanggal_review": {
+                    "type": "string"
                 },
                 "tgl_insert": {
                     "type": "string"

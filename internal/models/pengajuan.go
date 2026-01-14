@@ -43,7 +43,7 @@ type Pengajuan struct {
 
 // TableName specifies the table name for Pengajuan model
 func (Pengajuan) TableName() string {
-	return "db_pengajuan"
+	return "db_pengajuan_pkm"
 }
 
 // CanUploadProposal checks if mahasiswa can upload proposal (status_judul must be ACC)

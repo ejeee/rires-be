@@ -117,7 +117,7 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 
 	// 12. Create pengajuan
 	now := time.Now()
-	
+
 	pengajuan := &models.Pengajuan{
 		KodePengajuan: kodePengajuan,
 		NIMKetua:      ketuaNIM,
@@ -237,12 +237,12 @@ func (s *PengajuanService) GetPengajuanDetail(idPengajuan int) (*response.Pengaj
 	// 7. Get review history
 	var reviewJudulHistory []models.ReviewJudul
 	var reviewProposalHistory []models.ReviewProposal
-	
+
 	database.DB.Preload("StatusReview").
 		Where("id_pengajuan = ?", pengajuan.ID).
 		Order("tgl_review DESC").
 		Find(&reviewJudulHistory)
-	
+
 	database.DB.Preload("StatusReview").
 		Where("id_pengajuan = ?", pengajuan.ID).
 		Order("tgl_review DESC").
@@ -282,7 +282,7 @@ func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string
 		query = query.Where("status_judul = ?", "REVISI")
 	case "tolak":
 		query = query.Where("status_judul = ?", "TOLAK")
-	// "all" = no filter
+		// "all" = no filter
 	}
 
 	// Get pengajuan list
@@ -307,12 +307,19 @@ func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string
 			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
 			Count(&anggotaCount)
 
+		// Get reviewer proposal (if assigned)
+		var reviewerProposal *external.Pegawai
+		if pengajuan.IDPegawaiReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		}
+
 		// Map to list response
 		listResp := s.mapper.MapPengajuanToListResponse(
 			&pengajuan,
 			ketua,
 			&kategori,
 			int(anggotaCount),
+			reviewerProposal,
 		)
 
 		result = append(result, *listResp)
@@ -561,12 +568,19 @@ func (s *PengajuanService) GetAllPengajuan(filters map[string]interface{}) ([]re
 			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
 			Count(&anggotaCount)
 
+		// Get reviewer proposal (if assigned)
+		var reviewerProposal *external.Pegawai
+		if pengajuan.IDPegawaiReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		}
+
 		// Map to list response
 		listResp := s.mapper.MapPengajuanToListResponse(
 			&pengajuan,
 			ketua,
 			&kategori,
 			int(anggotaCount),
+			reviewerProposal,
 		)
 
 		result = append(result, *listResp)
@@ -608,8 +622,8 @@ func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idPegawai int, u
 
 	updates := map[string]interface{}{
 		"id_pegawai_reviewer_judul": idPegawai,
-		"status_judul":               "ON_REVIEW",
-		"user_update":                userUpdateStr,
+		"status_judul":              "ON_REVIEW",
+		"user_update":               userUpdateStr,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -660,8 +674,8 @@ func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idPegawai int
 
 	updates := map[string]interface{}{
 		"id_pegawai_reviewer_proposal": idPegawai,
-		"status_proposal":               "ON_REVIEW",
-		"user_update":                   userUpdateStr,
+		"status_proposal":              "ON_REVIEW",
+		"user_update":                  userUpdateStr,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -729,7 +743,7 @@ func (s *PengajuanService) AnnounceFinalResult(idPengajuan int, statusFinal stri
 func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]response.PengajuanListResponse, error) {
 	// Note: userID here is from db_user
 	// We need to find corresponding pegawai.id from SIMPEG
-	
+
 	// For now, assume userID directly maps to pegawai.id
 	// In production, you might need to join db_user with pegawai table
 	idPegawai := userID
@@ -767,12 +781,19 @@ func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]re
 			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
 			Count(&anggotaCount)
 
+		// Get reviewer proposal (if assigned)
+		var reviewerProposal *external.Pegawai
+		if pengajuan.IDPegawaiReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		}
+
 		// Map to list response
 		listResp := s.mapper.MapPengajuanToListResponse(
 			&pengajuan,
 			ketua,
 			&kategori,
 			int(anggotaCount),
+			reviewerProposal,
 		)
 
 		result = append(result, *listResp)
@@ -824,11 +845,11 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 	// 6. Create review record
 	now := time.Now()
 	review := &models.ReviewJudul{
-		IDPengajuan:      pengajuan.ID,
-		IDPegawai:        idPegawai,
-		IDStatusReview:   req.IDStatusReview,
-		Catatan:          req.Catatan,
-		TglReview:        &now,
+		IDPengajuan:    pengajuan.ID,
+		IDPegawai:      idPegawai,
+		IDStatusReview: req.IDStatusReview,
+		Catatan:        req.Catatan,
+		TglReview:      &now,
 	}
 
 	if err := tx.Create(review).Error; err != nil {
@@ -840,10 +861,10 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
 	updates := map[string]interface{}{
-		"status_judul":          statusReview.KodeStatus, // ACC, REVISI, or TOLAK
-		"catatan_review_judul":  req.Catatan,
-		"tgl_review_judul":      &now,
-		"user_update":           userUpdateStr,
+		"status_judul":         statusReview.KodeStatus, // ACC, REVISI, or TOLAK
+		"catatan_review_judul": req.Catatan,
+		"tgl_review_judul":     &now,
+		"user_update":          userUpdateStr,
 	}
 
 	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -908,11 +929,11 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 	// 6. Create review record
 	now := time.Now()
 	review := &models.ReviewProposal{
-		IDPengajuan:      pengajuan.ID,
-		IDPegawai:        idPegawai,
-		IDStatusReview:   req.IDStatusReview,
-		Catatan:          req.Catatan,
-		TglReview:        &now,
+		IDPengajuan:    pengajuan.ID,
+		IDPegawai:      idPegawai,
+		IDStatusReview: req.IDStatusReview,
+		Catatan:        req.Catatan,
+		TglReview:      &now,
 	}
 
 	if err := tx.Create(review).Error; err != nil {
@@ -924,10 +945,10 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
 	updates := map[string]interface{}{
-		"status_proposal":          statusReview.KodeStatus, // ACC, REVISI, or TOLAK
-		"catatan_review_proposal":  req.Catatan,
-		"tgl_review_proposal":      &now,
-		"user_update":              userUpdateStr,
+		"status_proposal":         statusReview.KodeStatus, // ACC, REVISI, or TOLAK
+		"catatan_review_proposal": req.Catatan,
+		"tgl_review_proposal":     &now,
+		"user_update":             userUpdateStr,
 	}
 
 	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {

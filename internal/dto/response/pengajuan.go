@@ -4,10 +4,10 @@ import "time"
 
 // PengajuanResponse represents detailed pengajuan data with all relations
 type PengajuanResponse struct {
-	ID            int                `json:"id"`
-	KodePengajuan string             `json:"kode_pengajuan"`
-	Judul         string             `json:"judul"`
-	Tahun         int                `json:"tahun"`
+	ID            int    `json:"id"`
+	KodePengajuan string `json:"kode_pengajuan"`
+	Judul         string `json:"judul"`
+	Tahun         int    `json:"tahun"`
 
 	// Status
 	StatusJudul    string `json:"status_judul"`
@@ -60,6 +60,15 @@ type PengajuanListResponse struct {
 	Ketua          *MahasiswaResponse `json:"ketua,omitempty"`
 	JumlahAnggota  int                `json:"jumlah_anggota"`
 	TglInsert      *time.Time         `json:"tgl_insert"`
+
+	// Flat fields for admin list view
+	NIMKetua        string     `json:"nim_ketua,omitempty"`
+	NamaKetua       string     `json:"nama_ketua,omitempty"`
+	NamaKategori    string     `json:"nama_kategori,omitempty"`
+	NamaReviewer    string     `json:"nama_reviewer,omitempty"`
+	CatatanProposal string     `json:"catatan_proposal,omitempty"`
+	TanggalReview   *time.Time `json:"tanggal_review,omitempty"`
+	FileProposal    string     `json:"file_proposal,omitempty"`
 }
 
 // KategoriResponse represents kategori PKM data
