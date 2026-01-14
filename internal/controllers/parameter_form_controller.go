@@ -54,7 +54,7 @@ func (ctrl *ParameterFormController) GetList(c *fiber.Ctx) error {
 
 	// Filter by kategori
 	if kategoriID != "" {
-		query = query.Where("kategori_id = ?", kategoriID)
+		query = query.Where("id_kategori = ?", kategoriID)
 	}
 
 	// Search
@@ -70,7 +70,7 @@ func (ctrl *ParameterFormController) GetList(c *fiber.Ctx) error {
 
 	// Get data with kategori
 	var params []models.ParameterForm
-	if err := query.Preload("Kategori").Order("`kategori_id` ASC, `urutan` ASC").
+	if err := query.Preload("Kategori").Order("`id_kategori` ASC, `urutan` ASC").
 		Offset(offset).Limit(perPage).Find(&params).Error; err != nil {
 		return utils.InternalServerErrorResponse(c, "Failed to fetch data")
 	}
@@ -90,7 +90,7 @@ func (ctrl *ParameterFormController) GetList(c *fiber.Ctx) error {
 
 		data = append(data, response.ParameterFormResponse{
 			ID:            param.ID,
-			KategoriID:    param.KategoriID,
+			IDKategori:    param.IDKategori,
 			NamaKategori:  namaKategori,
 			NamaParameter: param.NamaParameter,
 			Label:         param.Label,
@@ -156,7 +156,7 @@ func (ctrl *ParameterFormController) GetByKategori(c *fiber.Ctx) error {
 	for _, param := range params {
 		paramResponses = append(paramResponses, response.ParameterFormResponse{
 			ID:            param.ID,
-			KategoriID:    param.KategoriID,
+			IDKategori:    param.IDKategori,
 			NamaParameter: param.NamaParameter,
 			Label:         param.Label,
 			TipeInput:     param.TipeInput,
@@ -170,7 +170,7 @@ func (ctrl *ParameterFormController) GetByKategori(c *fiber.Ctx) error {
 	}
 
 	result := response.ParameterFormByKategoriResponse{
-		KategoriID:   kategori.ID,
+		IDKategori:   kategori.ID,
 		NamaKategori: kategori.NamaKategori,
 		Parameters:   paramResponses,
 	}
@@ -212,7 +212,7 @@ func (ctrl *ParameterFormController) GetByID(c *fiber.Ctx) error {
 
 	result := response.ParameterFormResponse{
 		ID:            param.ID,
-		KategoriID:    param.KategoriID,
+		IDKategori:    param.IDKategori,
 		NamaKategori:  namaKategori,
 		NamaParameter: param.NamaParameter,
 		Label:         param.Label,
@@ -267,7 +267,7 @@ func (ctrl *ParameterFormController) Create(c *fiber.Ctx) error {
 	// Create
 	now := time.Now()
 	param := models.ParameterForm{
-		KategoriID:    req.KategoriID,
+		IDKategori:    req.KategoriID,
 		NamaParameter: req.NamaParameter,
 		Label:         req.Label,
 		TipeInput:     req.TipeInput,
@@ -293,7 +293,7 @@ func (ctrl *ParameterFormController) Create(c *fiber.Ctx) error {
 
 	result := response.ParameterFormResponse{
 		ID:            param.ID,
-		KategoriID:    param.KategoriID,
+		IDKategori:    param.IDKategori,
 		NamaKategori:  kategori.NamaKategori,
 		NamaParameter: param.NamaParameter,
 		Label:         param.Label,
@@ -357,7 +357,7 @@ func (ctrl *ParameterFormController) Update(c *fiber.Ctx) error {
 	}
 
 	// Update
-	param.KategoriID = req.KategoriID
+	param.IDKategori = req.KategoriID
 	param.NamaParameter = req.NamaParameter
 	param.Label = req.Label
 	param.TipeInput = req.TipeInput
@@ -380,7 +380,7 @@ func (ctrl *ParameterFormController) Update(c *fiber.Ctx) error {
 
 	result := response.ParameterFormResponse{
 		ID:            param.ID,
-		KategoriID:    param.KategoriID,
+		IDKategori:    param.IDKategori,
 		NamaKategori:  kategori.NamaKategori,
 		NamaParameter: param.NamaParameter,
 		Label:         param.Label,

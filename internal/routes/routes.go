@@ -143,6 +143,15 @@ func Setup(app *fiber.App) {
 		authProtected.Get("/me", authController.GetCurrentUser)
 	}
 
+	// Reference Data routes (Fakultas & Prodi from NEOMAAREF)
+	referenceController := controllers.NewReferenceController()
+	reference := protected.Group("/reference")
+	{
+		reference.Get("/fakultas", referenceController.GetAllFakultas)
+		reference.Get("/prodi", referenceController.GetAllProdi)
+		reference.Get("/prodi/fakultas/:kode", referenceController.GetProdiByFakultas)
+	}
+
 	// User Level routes (Admin only)
 	userLevelController := controllers.NewUserLevelController()
 	userLevels := protected.Group("/user-levels", middleware.RequireAdmin())
@@ -158,9 +167,9 @@ func Setup(app *fiber.App) {
 	menuController := controllers.NewMenuController()
 	menusPublic := protected.Group("/menus")
 	{
-		menusPublic.Get("/", menuController.GetList)       // All users can read
-		menusPublic.Get("/tree", menuController.GetTree)   // All users can read
-		menusPublic.Get("/:id", menuController.GetByID)    // All users can read
+		menusPublic.Get("/", menuController.GetList)     // All users can read
+		menusPublic.Get("/tree", menuController.GetTree) // All users can read
+		menusPublic.Get("/:id", menuController.GetByID)  // All users can read
 	}
 	menusAdmin := protected.Group("/menus", middleware.RequireAdmin())
 	{
@@ -173,8 +182,8 @@ func Setup(app *fiber.App) {
 	kategoriPKMController := controllers.NewKategoriPKMController()
 	kategoriPublic := protected.Group("/kategori-pkm")
 	{
-		kategoriPublic.Get("/", kategoriPKMController.GetList)      // All users can read
-		kategoriPublic.Get("/:id", kategoriPKMController.GetByID)   // All users can read
+		kategoriPublic.Get("/", kategoriPKMController.GetList)    // All users can read
+		kategoriPublic.Get("/:id", kategoriPKMController.GetByID) // All users can read
 	}
 	kategoriAdmin := protected.Group("/kategori-pkm", middleware.RequireAdmin())
 	{
@@ -187,8 +196,8 @@ func Setup(app *fiber.App) {
 	statusReviewController := controllers.NewStatusReviewController()
 	statusPublic := protected.Group("/status-review")
 	{
-		statusPublic.Get("/", statusReviewController.GetList)       // All users can read
-		statusPublic.Get("/:id", statusReviewController.GetByID)    // All users can read
+		statusPublic.Get("/", statusReviewController.GetList)    // All users can read
+		statusPublic.Get("/:id", statusReviewController.GetByID) // All users can read
 	}
 	statusAdmin := protected.Group("/status-review", middleware.RequireAdmin())
 	{
@@ -248,11 +257,11 @@ func Setup(app *fiber.App) {
 		// Judul PKM
 		pengajuanMhs.Post("/judul", PengajuanController.CreateJudulPKM)
 		pengajuanMhs.Put("/judul/:id", PengajuanController.UpdateJudul)
-		
+
 		// Proposal
 		pengajuanMhs.Post("/:id/proposal", PengajuanController.UploadProposal)
 		pengajuanMhs.Put("/:id/proposal", PengajuanController.ReviseProposal)
-		
+
 		// List & Detail
 		pengajuanMhs.Get("/my-submissions", PengajuanController.GetMySubmissions)
 		pengajuanMhs.Get("/:id", PengajuanController.GetPengajuanDetail)
@@ -265,11 +274,11 @@ func Setup(app *fiber.App) {
 		// List & Detail
 		pengajuanAdmin.Get("/", pengajuanAdminController.GetAllPengajuan)
 		pengajuanAdmin.Get("/:id", pengajuanAdminController.GetPengajuanDetail)
-		
+
 		// Assign Reviewer
 		pengajuanAdmin.Post("/:id/assign-reviewer-judul", pengajuanAdminController.AssignReviewerJudul)
 		pengajuanAdmin.Post("/:id/assign-reviewer-proposal", pengajuanAdminController.AssignReviewerProposal)
-		
+
 		// Announce Final Result
 		pengajuanAdmin.Post("/:id/announce", pengajuanAdminController.AnnounceFinalResult)
 	}
@@ -291,10 +300,10 @@ func Setup(app *fiber.App) {
 	{
 		// My Assignments
 		pengajuanReviewer.Get("/my-assignments", pengajuanReviewerController.GetMyAssignments)
-		
+
 		// Detail
 		pengajuanReviewer.Get("/pengajuan/:id", pengajuanReviewerController.GetPengajuanDetail)
-		
+
 		// Review
 		pengajuanReviewer.Post("/judul/:id/review", pengajuanReviewerController.ReviewJudul)
 		pengajuanReviewer.Post("/proposal/:id/review", pengajuanReviewerController.ReviewProposal)

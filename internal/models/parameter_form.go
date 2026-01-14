@@ -5,7 +5,7 @@ import "time"
 // ParameterForm represents db_parameter_form table
 type ParameterForm struct {
 	ID            int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	KategoriID    int        `gorm:"column:kategori_id;type:int" json:"kategori_id"`
+	IDKategori    int        `gorm:"column:id_kategori;type:int" json:"id_kategori"`
 	NamaParameter string     `gorm:"column:nama_parameter;type:varchar(100)" json:"nama_parameter"`
 	Label         string     `gorm:"column:label;type:varchar(200)" json:"label"`
 	TipeInput     string     `gorm:"column:tipe_input;type:varchar(50)" json:"tipe_input"` // text, textarea, number, file, radio, select, etc
@@ -21,7 +21,7 @@ type ParameterForm struct {
 	UserUpdate    string     `gorm:"column:user_update;type:text" json:"user_update"`
 
 	// Relations
-	Kategori *KategoriPKM `gorm:"foreignKey:KategoriID" json:"kategori,omitempty"`
+	Kategori *KategoriPKM `gorm:"foreignKey:IDKategori" json:"kategori,omitempty"`
 }
 
 // TableName specifies the table name for ParameterForm model

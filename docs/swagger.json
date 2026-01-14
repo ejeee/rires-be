@@ -3383,6 +3383,182 @@
                 }
             }
         },
+        "/reference/fakultas": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of all fakultas from NEOMAAREF database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reference Data"
+                ],
+                "summary": "Get All Fakultas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.FakultasListResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reference/prodi": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of all program studi from NEOMAAREF database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reference Data"
+                ],
+                "summary": "Get All Program Studi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by fakultas code",
+                        "name": "fakultas",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ProdiListResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reference/prodi/fakultas/{kode}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of program studi by fakultas code from NEOMAAREF database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reference Data"
+                ],
+                "summary": "Get Program Studi by Fakultas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fakultas Code",
+                        "name": "kode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/definitions/response.ProdiListResponse"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/reviewer/judul/{id}/review": {
             "post": {
                 "security": [
@@ -6265,6 +6441,34 @@
                 }
             }
         },
+        "response.FakultasListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.FakultasRefResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.FakultasRefResponse": {
+            "type": "object",
+            "properties": {
+                "kode": {
+                    "type": "string"
+                },
+                "nama_fak_pendek": {
+                    "type": "string"
+                },
+                "nama_fakultas": {
+                    "type": "string"
+                }
+            }
+        },
         "response.FakultasResponse": {
             "type": "object",
             "properties": {
@@ -6516,7 +6720,7 @@
         "response.ParameterFormByKategoriResponse": {
             "type": "object",
             "properties": {
-                "kategori_id": {
+                "id_kategori": {
                     "type": "integer"
                 },
                 "nama_kategori": {
@@ -6562,7 +6766,7 @@
                 "id": {
                     "type": "integer"
                 },
-                "kategori_id": {
+                "id_kategori": {
                     "type": "integer"
                 },
                 "label": {
@@ -6827,6 +7031,43 @@
                     "type": "string"
                 },
                 "tgl_update": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ProdiListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ProdiRefResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ProdiRefResponse": {
+            "type": "object",
+            "properties": {
+                "fakultas": {
+                    "$ref": "#/definitions/response.FakultasRefResponse"
+                },
+                "kode": {
+                    "type": "string"
+                },
+                "kode_depart": {
+                    "type": "string"
+                },
+                "kode_fakultas": {
+                    "type": "integer"
+                },
+                "nama_depart": {
+                    "type": "string"
+                },
+                "nama_singkat": {
                     "type": "string"
                 }
             }

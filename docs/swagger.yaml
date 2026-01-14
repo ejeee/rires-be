@@ -585,6 +585,24 @@ definitions:
       nama_pegawai:
         type: string
     type: object
+  response.FakultasListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.FakultasRefResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.FakultasRefResponse:
+    properties:
+      kode:
+        type: string
+      nama_fak_pendek:
+        type: string
+      nama_fakultas:
+        type: string
+    type: object
   response.FakultasResponse:
     properties:
       kode:
@@ -750,7 +768,7 @@ definitions:
     type: object
   response.ParameterFormByKategoriResponse:
     properties:
-      kategori_id:
+      id_kategori:
         type: integer
       nama_kategori:
         type: string
@@ -780,7 +798,7 @@ definitions:
         type: string
       id:
         type: integer
-      kategori_id:
+      id_kategori:
         type: integer
       label:
         type: string
@@ -954,6 +972,30 @@ definitions:
       tgl_review_proposal:
         type: string
       tgl_update:
+        type: string
+    type: object
+  response.ProdiListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.ProdiRefResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.ProdiRefResponse:
+    properties:
+      fakultas:
+        $ref: '#/definitions/response.FakultasRefResponse'
+      kode:
+        type: string
+      kode_depart:
+        type: string
+      kode_fakultas:
+        type: integer
+      nama_depart:
+        type: string
+      nama_singkat:
         type: string
     type: object
   response.ProdiResponse:
@@ -3352,6 +3394,116 @@ paths:
       summary: Get My Submissions
       tags:
       - Mahasiswa - Pengajuan PKM
+  /reference/fakultas:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all fakultas from NEOMAAREF database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.FakultasListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Fakultas
+      tags:
+      - Reference Data
+  /reference/prodi:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all program studi from NEOMAAREF database
+      parameters:
+      - description: Filter by fakultas code
+        in: query
+        name: fakultas
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ProdiListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Program Studi
+      tags:
+      - Reference Data
+  /reference/prodi/fakultas/{kode}:
+    get:
+      consumes:
+      - application/json
+      description: Get list of program studi by fakultas code from NEOMAAREF database
+      parameters:
+      - description: Fakultas Code
+        in: path
+        name: kode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                $ref: '#/definitions/response.ProdiListResponse'
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Program Studi by Fakultas
+      tags:
+      - Reference Data
   /reviewer/judul/{id}/review:
     post:
       consumes:
