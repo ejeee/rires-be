@@ -32,12 +32,33 @@ func (s *ReviewerService) GetAllReviewers() ([]response.ReviewerResponse, error)
 		return nil, err
 	}
 
+	// Get pegawai IDs to fetch nama lengkap from SIMPEG
+	pegawaiIDs := make([]int, len(reviewers))
+	for i, r := range reviewers {
+		pegawaiIDs[i] = r.IDPegawai
+	}
+
+	// Fetch pegawai data from SIMPEG
+	pegawaiList, _ := s.externalService.GetPegawaiByIDs(pegawaiIDs)
+
+	// Create map for quick lookup
+	pegawaiMap := make(map[int]string)
+	for _, p := range pegawaiList {
+		pegawaiMap[p.ID] = p.GetNamaLengkap()
+	}
+
 	result := make([]response.ReviewerResponse, 0)
 	for _, reviewer := range reviewers {
+		namaLengkap := pegawaiMap[reviewer.IDPegawai]
+		if namaLengkap == "" {
+			namaLengkap = reviewer.NamaPegawai // Fallback to nama_pegawai if not found
+		}
+
 		result = append(result, response.ReviewerResponse{
 			ID:          reviewer.ID,
 			IDPegawai:   reviewer.IDPegawai,
 			NamaPegawai: reviewer.NamaPegawai,
+			NamaLengkap: namaLengkap,
 			EmailUmm:    reviewer.EmailUmm,
 			IsActive:    reviewer.IsActive,
 			TglInsert:   reviewer.TglInsert,
@@ -74,11 +95,11 @@ func (s *ReviewerService) GetAvailablePegawai() ([]response.AvailablePegawaiResp
 		}
 
 		result = append(result, response.AvailablePegawaiResponse{
-			ID:           pegawai.ID,
-			NamaPegawai:  pegawai.NamaPegawai,
-			NamaLengkap:  pegawai.GetNamaLengkap(),
-			EmailUmm:     pegawai.EmailUMM,
-			IsActivated:  activatedMap[pegawai.ID],
+			ID:          pegawai.ID,
+			NamaPegawai: pegawai.NamaPegawai,
+			NamaLengkap: pegawai.GetNamaLengkap(),
+			EmailUmm:    pegawai.EmailUMM,
+			IsActivated: activatedMap[pegawai.ID],
 		})
 	}
 

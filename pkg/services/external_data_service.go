@@ -87,7 +87,7 @@ func (s *ExternalDataService) GetPegawaiByID(id int) (*external.Pegawai, error) 
 	}
 
 	var pegawai external.Pegawai
-	if err := database.DBSimpeg.Where("id = ? AND hapus = ?", id, 0).First(&pegawai).Error; err != nil {
+	if err := database.DBSimpeg.Where("id = ? AND hapus = 1", id).First(&pegawai).Error; err != nil {
 		return nil, err
 	}
 
@@ -101,7 +101,7 @@ func (s *ExternalDataService) GetPegawaiByIDs(ids []int) ([]external.Pegawai, er
 	}
 
 	var pegawaiList []external.Pegawai
-	if err := database.DBSimpeg.Where("id IN ? AND hapus = ?", ids, 0).Find(&pegawaiList).Error; err != nil {
+	if err := database.DBSimpeg.Where("id IN ? AND hapus = 1", ids).Find(&pegawaiList).Error; err != nil {
 		return nil, err
 	}
 
@@ -116,7 +116,7 @@ func (s *ExternalDataService) ValidatePegawaiExists(id int) bool {
 
 	var count int64
 	database.DBSimpeg.Model(&external.Pegawai{}).
-		Where("id = ? AND hapus = ?", id, 0).
+		Where("id = ? AND hapus = 1", id).
 		Count(&count)
 
 	return count > 0
@@ -130,7 +130,7 @@ func (s *ExternalDataService) GetPegawaiWithFakultas(id int) (*external.Pegawai,
 
 	var pegawai external.Pegawai
 	if err := database.DBSimpeg.Preload("Fakultas").
-		Where("id = ? AND hapus = ?", id, 0).
+		Where("id = ? AND hapus = 1", id).
 		First(&pegawai).Error; err != nil {
 		return nil, err
 	}
@@ -138,14 +138,15 @@ func (s *ExternalDataService) GetPegawaiWithFakultas(id int) (*external.Pegawai,
 	return &pegawai, nil
 }
 
-// GetAllReviewers fetches all pegawai that can be reviewers
+// GetAllReviewers fetches all pegawai that can be reviewers (those with email_umm)
 func (s *ExternalDataService) GetAllReviewers() ([]external.Pegawai, error) {
 	if database.DBSimpeg == nil {
 		return nil, errors.New("SIMPEG database not connected")
 	}
 
 	var pegawaiList []external.Pegawai
-	if err := database.DBSimpeg.Where("hapus = ?", 0).
+	// Filter only pegawai with email_umm (not empty or null)
+	if err := database.DBSimpeg.Where("hapus = 1 AND email_umm IS NOT NULL AND email_umm != ''").
 		Order("nama_pegawai ASC").
 		Find(&pegawaiList).Error; err != nil {
 		return nil, err
