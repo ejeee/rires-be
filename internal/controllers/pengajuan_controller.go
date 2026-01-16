@@ -66,11 +66,44 @@ func (ctrl *PengajuanController) CreateJudulPKM(c *fiber.Ctx) error {
 		))
 	}
 
-	// 4. Get authenticated user (NIM ketua)
-	nimKetua := utils.GetCurrentUsername(c)
+	// 4. Get NIM ketua based on user type
+	userType := c.Locals("user_type")
+	var nimKetua string
+	var isAdmin bool
 
-	// 5. Call service
-	result, err := ctrl.service.CreateJudulPKM(&req, nimKetua)
+	if userType == "admin" {
+		// Admin: use nim_ketua from request body
+		isAdmin = true
+		if req.NIMKetua != "" {
+			nimKetua = req.NIMKetua
+		} else if len(req.Anggota) > 0 {
+			// If no nim_ketua, find ketua from anggota list
+			for _, anggota := range req.Anggota {
+				if anggota.IsKetua == 1 {
+					nimKetua = anggota.NIM
+					break
+				}
+			}
+			// If still no ketua found, use first anggota as ketua
+			if nimKetua == "" && len(req.Anggota) > 0 {
+				nimKetua = req.Anggota[0].NIM
+			}
+		}
+
+		if nimKetua == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+				"Validation failed",
+				"nim_ketua atau anggota dengan is_ketua=1 diperlukan untuk admin",
+			))
+		}
+	} else {
+		// Mahasiswa: use NIM from token
+		isAdmin = false
+		nimKetua = utils.GetCurrentUsername(c)
+	}
+
+	// 5. Call service (pass isAdmin flag to skip some validations)
+	result, err := ctrl.service.CreateJudulPKM(&req, nimKetua, isAdmin)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to create pengajuan",

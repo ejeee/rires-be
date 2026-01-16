@@ -6,7 +6,8 @@ import "errors"
 type CreatePengajuanRequest struct {
 	IDKategori int                `json:"id_kategori" validate:"required"`
 	Judul      string             `json:"judul" validate:"required,min=10,max=500"`
-	Anggota    []AnggotaRequest   `json:"anggota" validate:"required,min=1,max=5,dive"`
+	NIMKetua   string             `json:"nim_ketua" validate:"omitempty"`          // Optional: for admin to specify ketua NIM
+	Anggota    []AnggotaRequest   `json:"anggota" validate:"omitempty,max=5,dive"` // Optional, ketua auto-added
 	Parameter  []ParameterRequest `json:"parameter" validate:"dive"`
 }
 
@@ -17,6 +18,7 @@ type UpdateJudulRequest struct {
 }
 
 // Validate validates CreatePengajuanRequest
+// Note: Ketua validation is now handled by service (auto-added based on authenticated user)
 func (r *CreatePengajuanRequest) Validate() error {
 	// Check if anggota has exactly 1 ketua
 	ketuaCount := 0
@@ -25,14 +27,12 @@ func (r *CreatePengajuanRequest) Validate() error {
 			ketuaCount++
 		}
 	}
-	
-	if ketuaCount == 0 {
-		return errors.New("tim harus memiliki 1 ketua")
-	}
-	
+
+	// Allow 0 ketua (will be auto-added by service)
+	// Only check if there are more than 1 ketua
 	if ketuaCount > 1 {
 		return errors.New("tim hanya boleh memiliki 1 ketua")
 	}
-	
+
 	return nil
 }

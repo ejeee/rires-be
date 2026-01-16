@@ -5638,8 +5638,7 @@
         "request.AnggotaRequest": {
             "type": "object",
             "required": [
-                "nim",
-                "urutan"
+                "nim"
             ],
             "properties": {
                 "is_ketua": {
@@ -5654,6 +5653,7 @@
                     "type": "string"
                 },
                 "urutan": {
+                    "description": "Optional, will be auto-assigned",
                     "type": "integer",
                     "maximum": 5,
                     "minimum": 1
@@ -5824,15 +5824,14 @@
         "request.CreatePengajuanRequest": {
             "type": "object",
             "required": [
-                "anggota",
                 "id_kategori",
                 "judul"
             ],
             "properties": {
                 "anggota": {
+                    "description": "Optional, ketua auto-added",
                     "type": "array",
                     "maxItems": 5,
-                    "minItems": 1,
                     "items": {
                         "$ref": "#/definitions/request.AnggotaRequest"
                     }
@@ -5844,6 +5843,10 @@
                     "type": "string",
                     "maxLength": 500,
                     "minLength": 10
+                },
+                "nim_ketua": {
+                    "description": "Optional: for admin to specify ketua NIM",
+                    "type": "string"
                 },
                 "parameter": {
                     "type": "array",

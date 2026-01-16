@@ -39,59 +39,92 @@ func NewPengajuanService() *PengajuanService {
 // ========================================
 
 // CreateJudulPKM creates new PKM title submission
-func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, nimKetua string) (*response.PengajuanResponse, error) {
-	// 1. Validate custom rules
+func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, nimKetua string, isAdmin bool) (*response.PengajuanResponse, error) {
+	// 1. Auto-add ketua to anggota list if not already present
+	ketuaFound := false
+	for i, anggota := range req.Anggota {
+		if anggota.NIM == nimKetua {
+			// Mark this anggota as ketua
+			req.Anggota[i].IsKetua = 1
+			req.Anggota[i].Urutan = 1
+			ketuaFound = true
+		} else if anggota.IsKetua == 1 {
+			// Reset other is_ketua flags
+			req.Anggota[i].IsKetua = 0
+		}
+	}
+
+	// If ketua not in list, add them
+	if !ketuaFound {
+		ketuaAnggota := request.AnggotaRequest{
+			NIM:     nimKetua,
+			IsKetua: 1,
+			Urutan:  1,
+		}
+		// Prepend ketua to list
+		req.Anggota = append([]request.AnggotaRequest{ketuaAnggota}, req.Anggota...)
+	}
+
+	// 2. Fix urutan for anggota (ketua = 1, others = 2, 3, 4...)
+	urutanCounter := 2
+	for i := range req.Anggota {
+		if req.Anggota[i].IsKetua != 1 {
+			req.Anggota[i].Urutan = urutanCounter
+			urutanCounter++
+		}
+	}
+
+	// 3. Validate custom rules (now ketua is guaranteed to exist)
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
 
-	// 2. Check if registration period is open (temporarily returns nil)
-	if err := s.validator.CanSubmitPengajuan(); err != nil {
-		return nil, err
+	// 4. Check if registration period is open (skip for admin)
+	if !isAdmin {
+		if err := s.validator.CanSubmitPengajuan(); err != nil {
+			return nil, err
+		}
 	}
 
-	// 3. Validate team size
+	// 5. Validate team size
 	if err := s.validator.ValidateTeamSize(s.convertToAnggotaModels(req.Anggota)); err != nil {
 		return nil, err
 	}
 
-	// 4. Validate team structure (1 ketua)
+	// 6. Validate team structure (1 ketua)
 	if err := s.validator.ValidateTeamStructure(s.convertToAnggotaModels(req.Anggota)); err != nil {
 		return nil, err
 	}
 
-	// 5. Validate no duplicate NIM
+	// 7. Validate no duplicate NIM
 	if err := s.validator.ValidateNoDuplicateNIM(s.convertToAnggotaModels(req.Anggota)); err != nil {
 		return nil, err
 	}
 
-	// 6. Find ketua in anggota list
-	var ketuaNIM string
-	for _, anggota := range req.Anggota {
-		if anggota.IsKetua == 1 {
-			ketuaNIM = anggota.NIM
-			break
-		}
-	}
+	// 8. Get ketua NIM (now guaranteed to be nimKetua)
+	ketuaNIM := nimKetua
 
-	// 7. Verify ketua NIM matches authenticated user
-	if ketuaNIM != nimKetua {
-		return nil, errors.New("hanya ketua yang dapat membuat pengajuan")
-	}
-
-	// 8. Validate all NIMs exist in NEOMAA
+	// 9. Validate all NIMs exist in NEOMAA (skip for admin - for testing purposes)
 	nims := make([]string, len(req.Anggota))
 	for i, anggota := range req.Anggota {
 		nims[i] = anggota.NIM
 	}
 
-	mahasiswaList, err := s.externalService.GetMahasiswaByNIMs(nims)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch mahasiswa data: %w", err)
-	}
+	var mahasiswaList []external.Mahasiswa
+	if !isAdmin {
+		// For mahasiswa: validate NIMs in NEOMAA
+		var err error
+		mahasiswaList, err = s.externalService.GetMahasiswaByNIMs(nims)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch mahasiswa data: %w", err)
+		}
 
-	if len(mahasiswaList) != len(nims) {
-		return nil, errors.New("beberapa NIM tidak ditemukan di database mahasiswa")
+		if len(mahasiswaList) != len(nims) {
+			return nil, errors.New("beberapa NIM tidak ditemukan di database mahasiswa")
+		}
+	} else {
+		// For admin: try to fetch but don't fail if not found
+		mahasiswaList, _ = s.externalService.GetMahasiswaByNIMs(nims)
 	}
 
 	// 9. Get kategori

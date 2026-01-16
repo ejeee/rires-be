@@ -65,10 +65,14 @@ func RequireAdmin() fiber.Handler {
 	}
 }
 
-// RequireMahasiswa adalah middleware untuk memastikan user adalah mahasiswa
+// RequireMahasiswa adalah middleware untuk memastikan user adalah mahasiswa atau admin
 func RequireMahasiswa() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userType := c.Locals("user_type")
+		// Admin dapat mengakses semua endpoint
+		if userType == "admin" {
+			return c.Next()
+		}
 		if userType != "mahasiswa" {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"success": false,
@@ -79,10 +83,14 @@ func RequireMahasiswa() fiber.Handler {
 	}
 }
 
-// RequireReviewer adalah middleware untuk memastikan user adalah reviewer (pegawai)
+// RequireReviewer adalah middleware untuk memastikan user adalah reviewer (pegawai) atau admin
 func RequireReviewer() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userType := c.Locals("user_type")
+		// Admin dapat mengakses semua endpoint
+		if userType == "admin" {
+			return c.Next()
+		}
 		if userType != "pegawai" {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"success": false,

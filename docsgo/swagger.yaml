@@ -155,9 +155,6 @@ definitions:
         maxLength: 500
         minLength: 10
         type: string
-      nim_ketua:
-        description: 'Optional: for admin to specify ketua NIM'
-        type: string
       parameter:
         items:
           $ref: '#/definitions/request.ParameterRequest'
