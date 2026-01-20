@@ -152,17 +152,24 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 	now := time.Now()
 
 	pengajuan := &models.Pengajuan{
-		KodePengajuan: kodePengajuan,
-		NIMKetua:      ketuaNIM,
-		IDKategori:    req.IDKategori,
-		Judul:         req.Judul,
-		Tahun:         tahun,
-		StatusJudul:   "PENDING",
-		StatusFinal:   "DRAFT",
-		Status:        1,
-		Hapus:         0,
-		TglInsert:     &now,
-		UserUpdate:    nimKetua, // Store NIM for mahasiswa
+		KodePengajuan:   kodePengajuan,
+		NamaKetua:       req.NamaKetua,
+		NIMKetua:        ketuaNIM,
+		IDKategori:      req.IDKategori,
+		Judul:           req.Judul,
+		EmailKetua:      req.EmailKetua,
+		NoHPKetua:       req.NoHPKetua,
+		ProgramStudi:    req.ProgramStudi,
+		Fakultas:        req.Fakultas,
+		DosenPembimbing: req.DosenPembimbing,
+		TglPengajuan:    &now,
+		Tahun:           tahun,
+		StatusJudul:     "PENDING",
+		StatusFinal:     "DRAFT",
+		Status:          1,
+		Hapus:           0,
+		TglInsert:       &now,
+		UserUpdate:      nimKetua, // Store NIM for mahasiswa
 	}
 
 	if err := tx.Create(pengajuan).Error; err != nil {
@@ -174,7 +181,8 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 	for _, anggota := range req.Anggota {
 		anggotaModel := &models.PengajuanAnggota{
 			IDPengajuan: pengajuan.ID,
-			NIM:         anggota.NIM,
+			NIMAnggota:  anggota.NIM,
+			NamaAnggota: anggota.Nama,
 			IsKetua:     anggota.IsKetua,
 			Urutan:      anggota.Urutan,
 			Status:      1,
@@ -238,7 +246,7 @@ func (s *PengajuanService) GetPengajuanDetail(idPengajuan int) (*response.Pengaj
 	// 4. Get mahasiswa data from NEOMAA
 	nims := make([]string, len(anggotaModels))
 	for i, anggota := range anggotaModels {
-		nims[i] = anggota.NIM
+		nims[i] = anggota.NIMAnggota
 	}
 
 	mahasiswaList, _ := s.externalService.GetMahasiswaByNIMs(nims)
@@ -1012,9 +1020,9 @@ func (s *PengajuanService) convertToAnggotaModels(anggota []request.AnggotaReque
 	result := make([]models.PengajuanAnggota, len(anggota))
 	for i, a := range anggota {
 		result[i] = models.PengajuanAnggota{
-			NIM:     a.NIM,
-			IsKetua: a.IsKetua,
-			Urutan:  a.Urutan,
+			NIMAnggota: a.NIM,
+			IsKetua:    a.IsKetua,
+			Urutan:     a.Urutan,
 		}
 	}
 	return result

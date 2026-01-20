@@ -5655,6 +5655,9 @@ const docTemplate = `{
                         1
                     ]
                 },
+                "nama": {
+                    "type": "string"
+                },
                 "nim": {
                     "type": "string"
                 },
@@ -5842,6 +5845,15 @@ const docTemplate = `{
                         "$ref": "#/definitions/request.AnggotaRequest"
                     }
                 },
+                "dosen_pembimbing": {
+                    "type": "string"
+                },
+                "email_ketua": {
+                    "type": "string"
+                },
+                "fakultas": {
+                    "type": "string"
+                },
                 "id_kategori": {
                     "type": "integer"
                 },
@@ -5850,8 +5862,14 @@ const docTemplate = `{
                     "maxLength": 500,
                     "minLength": 10
                 },
+                "nama_ketua": {
+                    "type": "string"
+                },
                 "nim_ketua": {
                     "description": "Optional: for admin to specify ketua NIM",
+                    "type": "string"
+                },
+                "no_hp_ketua": {
                     "type": "string"
                 },
                 "parameter": {
@@ -5859,6 +5877,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/request.ParameterRequest"
                     }
+                },
+                "program_studi": {
+                    "type": "string"
                 }
             }
         },
@@ -6429,6 +6450,26 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AnggotaResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_ketua": {
+                    "type": "integer"
+                },
+                "nama_anggota": {
+                    "type": "string"
+                },
+                "nim_anggota": {
+                    "type": "string"
+                },
+                "urutan": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.AvailablePegawaiResponse": {
             "type": "object",
             "properties": {
@@ -6942,10 +6983,26 @@ const docTemplate = `{
                         "$ref": "#/definitions/response.MahasiswaResponse"
                     }
                 },
+                "anggota_list": {
+                    "description": "Team from local DB",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AnggotaResponse"
+                    }
+                },
                 "catatan_review_judul": {
                     "type": "string"
                 },
                 "catatan_review_proposal": {
+                    "type": "string"
+                },
+                "dosen_pembimbing": {
+                    "type": "string"
+                },
+                "email_ketua": {
+                    "type": "string"
+                },
+                "fakultas": {
                     "type": "string"
                 },
                 "file_proposal": {
@@ -6970,7 +7027,7 @@ const docTemplate = `{
                     ]
                 },
                 "ketua": {
-                    "description": "Team",
+                    "description": "Team (from NEOMAA - for backward compatibility)",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.MahasiswaResponse"
@@ -6980,12 +7037,25 @@ const docTemplate = `{
                 "kode_pengajuan": {
                     "type": "string"
                 },
+                "nama_ketua": {
+                    "description": "Biodata Ketua",
+                    "type": "string"
+                },
+                "nim_ketua": {
+                    "type": "string"
+                },
+                "no_hp_ketua": {
+                    "type": "string"
+                },
                 "parameter": {
                     "description": "Parameters (form answers)",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ParameterResponse"
                     }
+                },
+                "program_studi": {
+                    "type": "string"
                 },
                 "review_judul_history": {
                     "description": "Review History",
@@ -7031,6 +7101,9 @@ const docTemplate = `{
                 },
                 "tgl_insert": {
                     "description": "Timestamps",
+                    "type": "string"
+                },
+                "tgl_pengajuan": {
                     "type": "string"
                 },
                 "tgl_review_judul": {
@@ -7169,6 +7242,9 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "integer"
+                },
+                "nama_lengkap": {
+                    "type": "string"
                 },
                 "nama_pegawai": {
                     "type": "string"

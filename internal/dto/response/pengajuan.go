@@ -9,6 +9,16 @@ type PengajuanResponse struct {
 	Judul         string `json:"judul"`
 	Tahun         int    `json:"tahun"`
 
+	// Biodata Ketua
+	NamaKetua       string     `json:"nama_ketua"`
+	NIMKetua        string     `json:"nim_ketua"`
+	EmailKetua      string     `json:"email_ketua"`
+	NoHPKetua       string     `json:"no_hp_ketua"`
+	ProgramStudi    string     `json:"program_studi"`
+	Fakultas        string     `json:"fakultas"`
+	DosenPembimbing string     `json:"dosen_pembimbing"`
+	TglPengajuan    *time.Time `json:"tgl_pengajuan"`
+
 	// Status
 	StatusJudul    string `json:"status_judul"`
 	StatusProposal string `json:"status_proposal"`
@@ -17,9 +27,12 @@ type PengajuanResponse struct {
 	// Kategori
 	Kategori *KategoriResponse `json:"kategori,omitempty"`
 
-	// Team
+	// Team (from NEOMAA - for backward compatibility)
 	Ketua   *MahasiswaResponse  `json:"ketua,omitempty"`
 	Anggota []MahasiswaResponse `json:"anggota,omitempty"`
+
+	// Team from local DB
+	AnggotaList []AnggotaResponse `json:"anggota_list,omitempty"`
 
 	// Parameters (form answers)
 	Parameter []ParameterResponse `json:"parameter,omitempty"`
@@ -85,4 +98,13 @@ type ParameterResponse struct {
 	Label       string `json:"label"`
 	Nilai       string `json:"nilai"`
 	TipeInput   string `json:"tipe_input"`
+}
+
+// AnggotaResponse represents team member data from local DB
+type AnggotaResponse struct {
+	ID          int    `json:"id"`
+	NIMAnggota  string `json:"nim_anggota"`
+	NamaAnggota string `json:"nama_anggota"`
+	IsKetua     int    `json:"is_ketua"`
+	Urutan      int    `json:"urutan"`
 }

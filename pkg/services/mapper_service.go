@@ -267,10 +267,20 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 	}
 
 	resp := &response.PengajuanResponse{
-		ID:                    pengajuan.ID,
-		KodePengajuan:         pengajuan.KodePengajuan,
-		Judul:                 pengajuan.Judul,
-		Tahun:                 pengajuan.Tahun,
+		ID:            pengajuan.ID,
+		KodePengajuan: pengajuan.KodePengajuan,
+		Judul:         pengajuan.Judul,
+		Tahun:         pengajuan.Tahun,
+		// Biodata Ketua
+		NamaKetua:       pengajuan.NamaKetua,
+		NIMKetua:        pengajuan.NIMKetua,
+		EmailKetua:      pengajuan.EmailKetua,
+		NoHPKetua:       pengajuan.NoHPKetua,
+		ProgramStudi:    pengajuan.ProgramStudi,
+		Fakultas:        pengajuan.Fakultas,
+		DosenPembimbing: pengajuan.DosenPembimbing,
+		TglPengajuan:    pengajuan.TglPengajuan,
+		// Status
 		StatusJudul:           pengajuan.StatusJudul,
 		StatusProposal:        pengajuan.StatusProposal,
 		StatusFinal:           pengajuan.StatusFinal,
@@ -283,6 +293,20 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 		TglUpdate:             pengajuan.TglUpdate,
 	}
 
+	// Map anggota_list from local DB
+	if len(anggotaModels) > 0 {
+		resp.AnggotaList = make([]response.AnggotaResponse, len(anggotaModels))
+		for i, anggota := range anggotaModels {
+			resp.AnggotaList[i] = response.AnggotaResponse{
+				ID:          anggota.ID,
+				NIMAnggota:  anggota.NIMAnggota,
+				NamaAnggota: anggota.NamaAnggota,
+				IsKetua:     anggota.IsKetua,
+				Urutan:      anggota.Urutan,
+			}
+		}
+	}
+
 	// Map kategori
 	if kategori != nil {
 		resp.Kategori = m.MapKategoriToResponse(kategori)
@@ -293,7 +317,7 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 		// Find ketua in anggotaModels to get IsKetua flag
 		var ketuaModel *models.PengajuanAnggota
 		for _, anggota := range anggotaModels {
-			if anggota.NIM == ketua.KodeSiswa {
+			if anggota.NIMAnggota == ketua.KodeSiswa {
 				ketuaModel = &anggota
 				break
 			}
@@ -307,7 +331,7 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 		// Find corresponding anggota model
 		var anggotaModel *models.PengajuanAnggota
 		for _, anggota := range anggotaModels {
-			if anggota.NIM == mhs.KodeSiswa {
+			if anggota.NIMAnggota == mhs.KodeSiswa {
 				anggotaModel = &anggota
 				break
 			}

@@ -145,10 +145,10 @@ func (v *StatusValidator) ValidateNoDuplicateNIM(anggota []models.PengajuanAnggo
 	nimMap := make(map[string]bool)
 
 	for _, member := range anggota {
-		if nimMap[member.NIM] {
-			return errors.New("NIM duplikat ditemukan: " + member.NIM)
+		if nimMap[member.NIMAnggota] {
+			return errors.New("NIM duplikat ditemukan: " + member.NIMAnggota)
 		}
-		nimMap[member.NIM] = true
+		nimMap[member.NIMAnggota] = true
 	}
 
 	return nil
@@ -198,7 +198,7 @@ func (v *StatusValidator) IsOwner(pengajuan *models.Pengajuan, nim string) bool 
 // IsMemberOfTeam checks if given NIM is member of the team
 func (v *StatusValidator) IsMemberOfTeam(anggota []models.PengajuanAnggota, nim string) bool {
 	for _, member := range anggota {
-		if member.NIM == nim {
+		if member.NIMAnggota == nim {
 			return true
 		}
 	}

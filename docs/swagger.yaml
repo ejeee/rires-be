@@ -15,6 +15,8 @@ definitions:
         - 0
         - 1
         type: integer
+      nama:
+        type: string
       nim:
         type: string
       urutan:
@@ -149,19 +151,31 @@ definitions:
           $ref: '#/definitions/request.AnggotaRequest'
         maxItems: 5
         type: array
+      dosen_pembimbing:
+        type: string
+      email_ketua:
+        type: string
+      fakultas:
+        type: string
       id_kategori:
         type: integer
       judul:
         maxLength: 500
         minLength: 10
         type: string
+      nama_ketua:
+        type: string
       nim_ketua:
         description: 'Optional: for admin to specify ketua NIM'
+        type: string
+      no_hp_ketua:
         type: string
       parameter:
         items:
           $ref: '#/definitions/request.ParameterRequest'
         type: array
+      program_studi:
+        type: string
     required:
     - id_kategori
     - judul
@@ -573,6 +587,19 @@ definitions:
       success:
         type: boolean
     type: object
+  response.AnggotaResponse:
+    properties:
+      id:
+        type: integer
+      is_ketua:
+        type: integer
+      nama_anggota:
+        type: string
+      nim_anggota:
+        type: string
+      urutan:
+        type: integer
+    type: object
   response.AvailablePegawaiResponse:
     properties:
       email_umm:
@@ -912,9 +939,20 @@ definitions:
         items:
           $ref: '#/definitions/response.MahasiswaResponse'
         type: array
+      anggota_list:
+        description: Team from local DB
+        items:
+          $ref: '#/definitions/response.AnggotaResponse'
+        type: array
       catatan_review_judul:
         type: string
       catatan_review_proposal:
+        type: string
+      dosen_pembimbing:
+        type: string
+      email_ketua:
+        type: string
+      fakultas:
         type: string
       file_proposal:
         description: File
@@ -932,14 +970,23 @@ definitions:
       ketua:
         allOf:
         - $ref: '#/definitions/response.MahasiswaResponse'
-        description: Team
+        description: Team (from NEOMAA - for backward compatibility)
       kode_pengajuan:
+        type: string
+      nama_ketua:
+        description: Biodata Ketua
+        type: string
+      nim_ketua:
+        type: string
+      no_hp_ketua:
         type: string
       parameter:
         description: Parameters (form answers)
         items:
           $ref: '#/definitions/response.ParameterResponse'
         type: array
+      program_studi:
+        type: string
       review_judul_history:
         description: Review History
         items:
@@ -968,6 +1015,8 @@ definitions:
         type: integer
       tgl_insert:
         description: Timestamps
+        type: string
+      tgl_pengajuan:
         type: string
       tgl_review_judul:
         type: string
@@ -1059,6 +1108,8 @@ definitions:
         type: integer
       is_active:
         type: integer
+      nama_lengkap:
+        type: string
       nama_pegawai:
         type: string
       tgl_insert:

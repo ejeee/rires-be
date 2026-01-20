@@ -130,10 +130,10 @@ func (ctrl *TestHelperController) TestCodeGenerator(c *fiber.Ctx) error {
 		"success": true,
 		"message": "Code Generator Test",
 		"data": fiber.Map{
-			"kategori":      kategori.NamaKategori,
-			"tahun":         tahun,
+			"kategori":       kategori.NamaKategori,
+			"tahun":          tahun,
 			"generated_code": code,
-			"is_unique":     isUnique,
+			"is_unique":      isUnique,
 		},
 	})
 }
@@ -161,9 +161,9 @@ func (ctrl *TestHelperController) TestStatusValidator(c *fiber.Ctx) error {
 
 	// Test team validation
 	testTeam := []models.PengajuanAnggota{
-		{NIM: "202110370311503", IsKetua: 1, Urutan: 1},
-		{NIM: "202110370311504", IsKetua: 0, Urutan: 2},
-		{NIM: "202110370311505", IsKetua: 0, Urutan: 3},
+		{NIMAnggota: "202110370311503", IsKetua: 1, Urutan: 1},
+		{NIMAnggota: "202110370311504", IsKetua: 0, Urutan: 2},
+		{NIMAnggota: "202110370311505", IsKetua: 0, Urutan: 3},
 	}
 
 	// Validate team size
