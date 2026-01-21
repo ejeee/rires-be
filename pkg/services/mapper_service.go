@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"rires-be/internal/dto/response"
 	"rires-be/internal/models"
 	"rires-be/internal/models/external"
@@ -310,6 +311,7 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 	// Map kategori
 	if kategori != nil {
 		resp.Kategori = m.MapKategoriToResponse(kategori)
+		resp.NamaKategori = kategori.NamaKategori // Flat field
 	}
 
 	// Map ketua
@@ -342,11 +344,11 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 		}
 	}
 
-	// Map parameters
-	resp.Parameter = make([]response.ParameterResponse, 0)
-	for _, param := range parameterList {
-		if paramResp := m.MapParameterToResponse(&param); paramResp != nil {
-			resp.Parameter = append(resp.Parameter, *paramResp)
+	// Parse parameter_data JSON string to map
+	if pengajuan.ParameterData != "" {
+		var paramData map[string]interface{}
+		if err := json.Unmarshal([]byte(pengajuan.ParameterData), &paramData); err == nil {
+			resp.ParameterData = paramData
 		}
 	}
 

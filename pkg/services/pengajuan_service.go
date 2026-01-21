@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"mime/multipart"
@@ -151,6 +152,16 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 	// 12. Create pengajuan
 	now := time.Now()
 
+	// Convert parameter_data map to JSON string
+	var parameterDataJSON string
+	if req.ParameterData != nil {
+		paramDataBytes, err := json.Marshal(req.ParameterData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal parameter_data: %w", err)
+		}
+		parameterDataJSON = string(paramDataBytes)
+	}
+
 	pengajuan := &models.Pengajuan{
 		KodePengajuan:   kodePengajuan,
 		NamaKetua:       req.NamaKetua,
@@ -162,6 +173,7 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 		ProgramStudi:    req.ProgramStudi,
 		Fakultas:        req.Fakultas,
 		DosenPembimbing: req.DosenPembimbing,
+		ParameterData:   parameterDataJSON,
 		TglPengajuan:    &now,
 		Tahun:           tahun,
 		StatusJudul:     "PENDING",
@@ -195,21 +207,7 @@ func (s *PengajuanService) CreateJudulPKM(req *request.CreatePengajuanRequest, n
 		}
 	}
 
-	// 14. Create parameter answers
-	for _, param := range req.Parameter {
-		paramModel := &models.ParameterPKM{
-			IDPengajuan: pengajuan.ID,
-			IDParameter: param.IDParameter,
-			Nilai:       param.Nilai,
-		}
-
-		if err := tx.Create(paramModel).Error; err != nil {
-			tx.Rollback()
-			return nil, fmt.Errorf("failed to create parameter: %w", err)
-		}
-	}
-
-	// 15. COMMIT TRANSACTION
+	// 14. COMMIT TRANSACTION
 	if err := tx.Commit().Error; err != nil {
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}

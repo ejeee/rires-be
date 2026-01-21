@@ -170,10 +170,10 @@ definitions:
         type: string
       no_hp_ketua:
         type: string
-      parameter:
-        items:
-          $ref: '#/definitions/request.ParameterRequest'
-        type: array
+      parameter_data:
+        additionalProperties: true
+        description: JSON object for form parameters
+        type: object
       program_studi:
         type: string
     required:
@@ -860,19 +860,6 @@ definitions:
         description: JSON string
         type: string
     type: object
-  response.ParameterResponse:
-    properties:
-      id:
-        type: integer
-      id_parameter:
-        type: integer
-      label:
-        type: string
-      nilai:
-        type: string
-      tipe_input:
-        type: string
-    type: object
   response.PegawaiResponse:
     properties:
       email:
@@ -973,6 +960,9 @@ definitions:
         description: Team (from NEOMAA - for backward compatibility)
       kode_pengajuan:
         type: string
+      nama_kategori:
+        description: Flat field for easy access
+        type: string
       nama_ketua:
         description: Biodata Ketua
         type: string
@@ -980,11 +970,10 @@ definitions:
         type: string
       no_hp_ketua:
         type: string
-      parameter:
-        description: Parameters (form answers)
-        items:
-          $ref: '#/definitions/response.ParameterResponse'
-        type: array
+      parameter_data:
+        additionalProperties: true
+        description: Parameter Data (JSON object)
+        type: object
       program_studi:
         type: string
       review_judul_history:

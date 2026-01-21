@@ -25,7 +25,8 @@ type PengajuanResponse struct {
 	StatusFinal    string `json:"status_final"`
 
 	// Kategori
-	Kategori *KategoriResponse `json:"kategori,omitempty"`
+	Kategori     *KategoriResponse `json:"kategori,omitempty"`
+	NamaKategori string            `json:"nama_kategori,omitempty"` // Flat field for easy access
 
 	// Team (from NEOMAA - for backward compatibility)
 	Ketua   *MahasiswaResponse  `json:"ketua,omitempty"`
@@ -34,8 +35,8 @@ type PengajuanResponse struct {
 	// Team from local DB
 	AnggotaList []AnggotaResponse `json:"anggota_list,omitempty"`
 
-	// Parameters (form answers)
-	Parameter []ParameterResponse `json:"parameter,omitempty"`
+	// Parameter Data (JSON object)
+	ParameterData map[string]interface{} `json:"parameter_data,omitempty"`
 
 	// File
 	FileProposal    string `json:"file_proposal,omitempty"`

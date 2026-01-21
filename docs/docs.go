@@ -5872,11 +5872,10 @@ const docTemplate = `{
                 "no_hp_ketua": {
                     "type": "string"
                 },
-                "parameter": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.ParameterRequest"
-                    }
+                "parameter_data": {
+                    "description": "JSON object for form parameters",
+                    "type": "object",
+                    "additionalProperties": true
                 },
                 "program_studi": {
                     "type": "string"
@@ -6864,26 +6863,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ParameterResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "id_parameter": {
-                    "type": "integer"
-                },
-                "label": {
-                    "type": "string"
-                },
-                "nilai": {
-                    "type": "string"
-                },
-                "tipe_input": {
-                    "type": "string"
-                }
-            }
-        },
         "response.PegawaiResponse": {
             "type": "object",
             "properties": {
@@ -7037,6 +7016,10 @@ const docTemplate = `{
                 "kode_pengajuan": {
                     "type": "string"
                 },
+                "nama_kategori": {
+                    "description": "Flat field for easy access",
+                    "type": "string"
+                },
                 "nama_ketua": {
                     "description": "Biodata Ketua",
                     "type": "string"
@@ -7047,12 +7030,10 @@ const docTemplate = `{
                 "no_hp_ketua": {
                     "type": "string"
                 },
-                "parameter": {
-                    "description": "Parameters (form answers)",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ParameterResponse"
-                    }
+                "parameter_data": {
+                    "description": "Parameter Data (JSON object)",
+                    "type": "object",
+                    "additionalProperties": true
                 },
                 "program_studi": {
                     "type": "string"
