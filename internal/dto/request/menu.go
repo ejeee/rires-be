@@ -22,6 +22,6 @@ type UpdateMenuRequest struct {
 
 // ReorderMenuRequest untuk ubah urutan menu
 type ReorderMenuRequest struct {
-	MenuID int `json:"menu_id" validate:"required"`
+	IDMenu int `json:"id_menu" validate:"required"`
 	Urutan int `json:"urutan" validate:"required,min=0"`
 }

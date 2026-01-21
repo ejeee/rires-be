@@ -25,6 +25,7 @@ type PengajuanResponse struct {
 	StatusFinal    string `json:"status_final"`
 
 	// Kategori
+	IDKategori   int               `json:"id_kategori"` // Flat field for easy access
 	Kategori     *KategoriResponse `json:"kategori,omitempty"`
 	NamaKategori string            `json:"nama_kategori,omitempty"` // Flat field for easy access
 

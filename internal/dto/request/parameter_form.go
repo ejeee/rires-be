@@ -2,7 +2,7 @@ package request
 
 // CreateParameterFormRequest untuk create parameter form
 type CreateParameterFormRequest struct {
-	KategoriID    int    `json:"kategori_id" validate:"required"`
+	IDKategori    int    `json:"id_kategori" validate:"required"`
 	NamaParameter string `json:"nama_parameter" validate:"required,min=2,max=100"`
 	Label         string `json:"label" validate:"required,min=3,max=200"`
 	TipeInput     string `json:"tipe_input" validate:"required"` // text, textarea, number, file, radio, select, etc
@@ -16,7 +16,7 @@ type CreateParameterFormRequest struct {
 
 // UpdateParameterFormRequest untuk update parameter form
 type UpdateParameterFormRequest struct {
-	KategoriID    int    `json:"kategori_id" validate:"required"`
+	IDKategori    int    `json:"id_kategori" validate:"required"`
 	NamaParameter string `json:"nama_parameter" validate:"required,min=2,max=100"`
 	Label         string `json:"label" validate:"required,min=3,max=200"`
 	TipeInput     string `json:"tipe_input" validate:"required"`

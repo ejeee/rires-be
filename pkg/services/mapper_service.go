@@ -281,6 +281,8 @@ func (m *MapperService) MapPengajuanToDetailResponse(
 		Fakultas:        pengajuan.Fakultas,
 		DosenPembimbing: pengajuan.DosenPembimbing,
 		TglPengajuan:    pengajuan.TglPengajuan,
+		// Kategori
+		IDKategori: pengajuan.IDKategori,
 		// Status
 		StatusJudul:           pengajuan.StatusJudul,
 		StatusProposal:        pengajuan.StatusProposal,

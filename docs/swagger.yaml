@@ -106,7 +106,7 @@ definitions:
     properties:
       help_text:
         type: string
-      kategori_id:
+      id_kategori:
         type: integer
       label:
         maxLength: 200
@@ -137,7 +137,7 @@ definitions:
         description: JSON string
         type: string
     required:
-    - kategori_id
+    - id_kategori
     - label
     - nama_parameter
     - status
@@ -431,7 +431,7 @@ definitions:
     properties:
       help_text:
         type: string
-      kategori_id:
+      id_kategori:
         type: integer
       label:
         maxLength: 200
@@ -459,7 +459,7 @@ definitions:
       validasi:
         type: string
     required:
-    - kategori_id
+    - id_kategori
     - label
     - nama_parameter
     - status
@@ -948,12 +948,13 @@ definitions:
         type: string
       id:
         type: integer
+      id_kategori:
+        description: Kategori
+        type: integer
       judul:
         type: string
       kategori:
-        allOf:
-        - $ref: '#/definitions/response.KategoriResponse'
-        description: Kategori
+        $ref: '#/definitions/response.KategoriResponse'
       ketua:
         allOf:
         - $ref: '#/definitions/response.MahasiswaResponse'

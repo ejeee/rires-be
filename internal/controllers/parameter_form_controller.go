@@ -260,14 +260,14 @@ func (ctrl *ParameterFormController) Create(c *fiber.Ctx) error {
 
 	// Check if kategori exists
 	var kategori models.KategoriPKM
-	if err := database.DB.Where("id = ? AND hapus = ?", req.KategoriID, 0).First(&kategori).Error; err != nil {
+	if err := database.DB.Where("id = ? AND hapus = ?", req.IDKategori, 0).First(&kategori).Error; err != nil {
 		return utils.BadRequestResponse(c, "Kategori PKM not found")
 	}
 
 	// Create
 	now := time.Now()
 	param := models.ParameterForm{
-		IDKategori:    req.KategoriID,
+		IDKategori:    req.IDKategori,
 		NamaParameter: req.NamaParameter,
 		Label:         req.Label,
 		TipeInput:     req.TipeInput,
@@ -352,12 +352,12 @@ func (ctrl *ParameterFormController) Update(c *fiber.Ctx) error {
 
 	// Check if kategori exists
 	var kategori models.KategoriPKM
-	if err := database.DB.Where("id = ? AND hapus = ?", req.KategoriID, 0).First(&kategori).Error; err != nil {
+	if err := database.DB.Where("id = ? AND hapus = ?", req.IDKategori, 0).First(&kategori).Error; err != nil {
 		return utils.BadRequestResponse(c, "Kategori PKM not found")
 	}
 
 	// Update
-	param.IDKategori = req.KategoriID
+	param.IDKategori = req.IDKategori
 	param.NamaParameter = req.NamaParameter
 	param.Label = req.Label
 	param.TipeInput = req.TipeInput

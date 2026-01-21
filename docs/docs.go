@@ -5778,7 +5778,7 @@ const docTemplate = `{
         "request.CreateParameterFormRequest": {
             "type": "object",
             "required": [
-                "kategori_id",
+                "id_kategori",
                 "label",
                 "nama_parameter",
                 "status",
@@ -5788,7 +5788,7 @@ const docTemplate = `{
                 "help_text": {
                     "type": "string"
                 },
-                "kategori_id": {
+                "id_kategori": {
                     "type": "integer"
                 },
                 "label": {
@@ -6228,7 +6228,7 @@ const docTemplate = `{
         "request.UpdateParameterFormRequest": {
             "type": "object",
             "required": [
-                "kategori_id",
+                "id_kategori",
                 "label",
                 "nama_parameter",
                 "status",
@@ -6238,7 +6238,7 @@ const docTemplate = `{
                 "help_text": {
                     "type": "string"
                 },
-                "kategori_id": {
+                "id_kategori": {
                     "type": "integer"
                 },
                 "label": {
@@ -6994,16 +6994,15 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "id_kategori": {
+                    "description": "Kategori",
+                    "type": "integer"
+                },
                 "judul": {
                     "type": "string"
                 },
                 "kategori": {
-                    "description": "Kategori",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/response.KategoriResponse"
-                        }
-                    ]
+                    "$ref": "#/definitions/response.KategoriResponse"
                 },
                 "ketua": {
                     "description": "Team (from NEOMAA - for backward compatibility)",
