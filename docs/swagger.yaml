@@ -329,16 +329,6 @@ definitions:
     required:
     - id_menu
     type: object
-  request.ParameterRequest:
-    properties:
-      id_parameter:
-        type: integer
-      nilai:
-        type: string
-    required:
-    - id_parameter
-    - nilai
-    type: object
   request.ResetPasswordRequest:
     properties:
       new_password:
@@ -374,14 +364,32 @@ definitions:
     type: object
   request.UpdateJudulRequest:
     properties:
+      anggota:
+        items:
+          $ref: '#/definitions/request.AnggotaRequest'
+        maxItems: 5
+        type: array
+      dosen_pembimbing:
+        type: string
+      email_ketua:
+        type: string
+      fakultas:
+        type: string
+      id_kategori:
+        type: integer
       judul:
         maxLength: 500
         minLength: 10
         type: string
-      parameter:
-        items:
-          $ref: '#/definitions/request.ParameterRequest'
-        type: array
+      nama_ketua:
+        type: string
+      no_hp_ketua:
+        type: string
+      parameter_data:
+        additionalProperties: true
+        type: object
+      program_studi:
+        type: string
     required:
     - judul
     type: object
@@ -2872,9 +2880,9 @@ paths:
         in: query
         name: search
         type: string
-      - description: Filter by kategori_id
+      - description: Filter by id_kategori
         in: query
-        name: kategori_id
+        name: id_kategori
         type: integer
       produces:
       - application/json
@@ -3080,7 +3088,7 @@ paths:
       summary: Update Parameter Form
       tags:
       - Parameter Form
-  /parameter-form/kategori/{kategori_id}:
+  /parameter-form/kategori/{id_kategori}:
     get:
       consumes:
       - application/json
@@ -3088,7 +3096,7 @@ paths:
       parameters:
       - description: Kategori PKM ID
         in: path
-        name: kategori_id
+        name: id_kategori
         required: true
         type: integer
       produces:

@@ -2498,8 +2498,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Filter by kategori_id",
-                        "name": "kategori_id",
+                        "description": "Filter by id_kategori",
+                        "name": "id_kategori",
                         "in": "query"
                     }
                 ],
@@ -2600,7 +2600,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/parameter-form/kategori/{kategori_id}": {
+        "/parameter-form/kategori/{id_kategori}": {
             "get": {
                 "security": [
                     {
@@ -2622,7 +2622,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Kategori PKM ID",
-                        "name": "kategori_id",
+                        "name": "id_kategori",
                         "in": "path",
                         "required": true
                     }
@@ -6087,21 +6087,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.ParameterRequest": {
-            "type": "object",
-            "required": [
-                "id_parameter",
-                "nilai"
-            ],
-            "properties": {
-                "id_parameter": {
-                    "type": "integer"
-                },
-                "nilai": {
-                    "type": "string"
-                }
-            }
-        },
         "request.ResetPasswordRequest": {
             "type": "object",
             "required": [
@@ -6154,16 +6139,42 @@ const docTemplate = `{
                 "judul"
             ],
             "properties": {
+                "anggota": {
+                    "type": "array",
+                    "maxItems": 5,
+                    "items": {
+                        "$ref": "#/definitions/request.AnggotaRequest"
+                    }
+                },
+                "dosen_pembimbing": {
+                    "type": "string"
+                },
+                "email_ketua": {
+                    "type": "string"
+                },
+                "fakultas": {
+                    "type": "string"
+                },
+                "id_kategori": {
+                    "type": "integer"
+                },
                 "judul": {
                     "type": "string",
                     "maxLength": 500,
                     "minLength": 10
                 },
-                "parameter": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.ParameterRequest"
-                    }
+                "nama_ketua": {
+                    "type": "string"
+                },
+                "no_hp_ketua": {
+                    "type": "string"
+                },
+                "parameter_data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "program_studi": {
+                    "type": "string"
                 }
             }
         },

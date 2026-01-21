@@ -211,7 +211,7 @@ func Setup(app *fiber.App) {
 	paramPublic := protected.Group("/parameter-form")
 	{
 		paramPublic.Get("/", parameterFormController.GetList)
-		paramPublic.Get("/kategori/:kategori_id", parameterFormController.GetByKategori) // Important for mahasiswa
+		paramPublic.Get("/kategori/:id_kategori", parameterFormController.GetByKategori) // Important for mahasiswa
 		paramPublic.Get("/:id", parameterFormController.GetByID)
 	}
 	paramAdmin := protected.Group("/parameter-form", middleware.RequireAdmin())

@@ -400,11 +400,47 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 		}
 	}()
 
-	// 5. Update judul
+	// 5. Convert parameter_data map to JSON string
+	var parameterDataJSON string
+	if req.ParameterData != nil {
+		paramDataBytes, err := json.Marshal(req.ParameterData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal parameter_data: %w", err)
+		}
+		parameterDataJSON = string(paramDataBytes)
+	}
+
+	// 6. Update judul and biodata
 	updates := map[string]interface{}{
 		"judul":        req.Judul,
 		"status_judul": "PENDING", // Reset to PENDING after revision
 		"user_update":  nimKetua,
+	}
+
+	// Update biodata if provided
+	if req.NamaKetua != "" {
+		updates["nama_ketua"] = req.NamaKetua
+	}
+	if req.EmailKetua != "" {
+		updates["email_ketua"] = req.EmailKetua
+	}
+	if req.NoHPKetua != "" {
+		updates["no_hp_ketua"] = req.NoHPKetua
+	}
+	if req.ProgramStudi != "" {
+		updates["program_studi"] = req.ProgramStudi
+	}
+	if req.Fakultas != "" {
+		updates["fakultas"] = req.Fakultas
+	}
+	if req.DosenPembimbing != "" {
+		updates["dosen_pembimbing"] = req.DosenPembimbing
+	}
+	if req.IDKategori != 0 {
+		updates["id_kategori"] = req.IDKategori
+	}
+	if parameterDataJSON != "" {
+		updates["parameter_data"] = parameterDataJSON
 	}
 
 	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -412,23 +448,30 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 		return nil, err
 	}
 
-	// 6. Delete old parameters
-	if err := tx.Where("id_pengajuan = ?", pengajuan.ID).Delete(&models.ParameterPKM{}).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	// 7. Create new parameters
-	for _, param := range req.Parameter {
-		paramModel := &models.ParameterPKM{
-			IDPengajuan: pengajuan.ID,
-			IDParameter: param.IDParameter,
-			Nilai:       param.Nilai,
-		}
-
-		if err := tx.Create(paramModel).Error; err != nil {
+	// 7. Update anggota if provided
+	if len(req.Anggota) > 0 {
+		// Delete old anggota
+		if err := tx.Where("id_pengajuan = ?", pengajuan.ID).Delete(&models.PengajuanAnggota{}).Error; err != nil {
 			tx.Rollback()
 			return nil, err
+		}
+
+		// Create new anggota
+		for _, anggota := range req.Anggota {
+			anggotaModel := &models.PengajuanAnggota{
+				IDPengajuan: pengajuan.ID,
+				NIMAnggota:  anggota.NIM,
+				NamaAnggota: anggota.Nama,
+				IsKetua:     anggota.IsKetua,
+				Urutan:      anggota.Urutan,
+				Status:      1,
+				Hapus:       0,
+			}
+
+			if err := tx.Create(anggotaModel).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
 		}
 	}
 

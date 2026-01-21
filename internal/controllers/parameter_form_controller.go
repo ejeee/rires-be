@@ -28,7 +28,7 @@ func NewParameterFormController() *ParameterFormController {
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search by nama_parameter or label"
-// @Param kategori_id query int false "Filter by kategori_id"
+// @Param id_kategori query int false "Filter by id_kategori"
 // @Success 200 {object} object{success=bool,message=string,data=response.ParameterFormListResponse}
 // @Failure 500 {object} object{success=bool,message=string}
 // @Security BearerAuth
@@ -38,7 +38,7 @@ func (ctrl *ParameterFormController) GetList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	perPage, _ := strconv.Atoi(c.Query("per_page", "10"))
 	search := c.Query("search", "")
-	kategoriID := c.Query("kategori_id", "")
+	kategoriID := c.Query("id_kategori", "")
 
 	if page < 1 {
 		page = 1
@@ -127,15 +127,15 @@ func (ctrl *ParameterFormController) GetList(c *fiber.Ctx) error {
 // @Tags Parameter Form
 // @Accept json
 // @Produce json
-// @Param kategori_id path int true "Kategori PKM ID"
+// @Param id_kategori path int true "Kategori PKM ID"
 // @Success 200 {object} object{success=bool,message=string,data=response.ParameterFormByKategoriResponse}
 // @Failure 404 {object} object{success=bool,message=string}
 // @Security BearerAuth
-// @Router /parameter-form/kategori/{kategori_id} [get]
+// @Router /parameter-form/kategori/{id_kategori} [get]
 func (ctrl *ParameterFormController) GetByKategori(c *fiber.Ctx) error {
-	kategoriID, err := strconv.Atoi(c.Params("kategori_id"))
+	kategoriID, err := strconv.Atoi(c.Params("id_kategori"))
 	if err != nil {
-		return utils.BadRequestResponse(c, "Invalid kategori_id")
+		return utils.BadRequestResponse(c, "Invalid id_kategori")
 	}
 
 	// Check if kategori exists
@@ -146,7 +146,7 @@ func (ctrl *ParameterFormController) GetByKategori(c *fiber.Ctx) error {
 
 	// Get parameters for this kategori
 	var params []models.ParameterForm
-	if err := database.DB.Where("kategori_id = ? AND hapus = ? AND status = ?", kategoriID, 0, 1).
+	if err := database.DB.Where("id_kategori = ? AND hapus = ? AND status = ?", kategoriID, 0, 1).
 		Order("`urutan` ASC").Find(&params).Error; err != nil {
 		return utils.InternalServerErrorResponse(c, "Failed to fetch parameters")
 	}
