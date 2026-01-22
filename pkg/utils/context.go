@@ -6,11 +6,11 @@ import (
 
 // GetCurrentUserID mengambil user ID dari context (setelah melalui JWT middleware)
 func GetCurrentUserID(c *fiber.Ctx) uint {
-	userID := c.Locals("user_id")
+	userID := c.Locals("id_user")
 	if userID == nil {
 		return 0
 	}
-	
+
 	// Handle both uint and float64 (from JWT claims)
 	switch v := userID.(type) {
 	case uint:

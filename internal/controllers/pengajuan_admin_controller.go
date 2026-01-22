@@ -172,7 +172,7 @@ func (ctrl *PengajuanAdminController) AssignReviewerJudul(c *fiber.Ctx) error {
 	userID := int(utils.GetCurrentUserID(c))
 
 	// 5. Call service
-	result, err := ctrl.service.AssignReviewerJudul(id, req.IDPegawai, userID)
+	result, err := ctrl.service.AssignReviewerJudul(id, req.IDReviewer, userID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to assign reviewer",
@@ -234,7 +234,7 @@ func (ctrl *PengajuanAdminController) AssignReviewerProposal(c *fiber.Ctx) error
 	userID := int(utils.GetCurrentUserID(c))
 
 	// 5. Call service
-	result, err := ctrl.service.AssignReviewerProposal(id, req.IDPegawai, userID)
+	result, err := ctrl.service.AssignReviewerProposal(id, req.IDReviewer, userID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to assign reviewer",

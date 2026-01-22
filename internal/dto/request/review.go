@@ -14,7 +14,7 @@ type ReviewProposalRequest struct {
 
 // AssignReviewerRequest represents request body for admin to assign reviewer
 type AssignReviewerRequest struct {
-	IDPegawai int `json:"id_pegawai" validate:"required"`
+	IDReviewer int `json:"id_reviewer" validate:"required"` // ID from db_reviewer table
 }
 
 // AnnounceRequest represents request body for admin to announce final result

@@ -11,7 +11,7 @@ import (
 
 // JWTClaims adalah struktur claims untuk JWT
 type JWTClaims struct {
-	UserID   uint              `json:"user_id"`
+	UserID   uint              `json:"id_user"`
 	Email    string            `json:"email"`
 	Username string            `json:"username"`
 	UserType string            `json:"user_type"` // admin, mahasiswa, pegawai

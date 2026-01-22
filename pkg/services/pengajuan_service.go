@@ -679,7 +679,7 @@ func (s *PengajuanService) GetAllPengajuan(filters map[string]interface{}) ([]re
 // ========================================
 
 // AssignReviewerJudul assigns reviewer for title review
-func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idPegawai int, userID int) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idReviewer int, userID int) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -689,10 +689,15 @@ func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idPegawai int, u
 		return nil, err
 	}
 
-	// 2. Validate pegawai exists
-	if !s.externalService.ValidatePegawaiExists(idPegawai) {
-		return nil, errors.New("pegawai/reviewer tidak ditemukan")
+	// 2. Get reviewer from db_reviewer and validate
+	var reviewer models.Reviewer
+	if err := database.DB.Where("id = ? AND hapus = ? AND is_active = ?", idReviewer, 0, 1).First(&reviewer).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("reviewer tidak ditemukan atau tidak aktif")
+		}
+		return nil, err
 	}
+	idPegawai := reviewer.IDPegawai
 
 	// 3. Check if status allows assignment (must be PENDING or ON_REVIEW)
 	if pengajuan.StatusJudul != "PENDING" && pengajuan.StatusJudul != "ON_REVIEW" {
@@ -726,7 +731,7 @@ func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idPegawai int, u
 }
 
 // AssignReviewerProposal assigns reviewer for proposal review
-func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idPegawai int, userID int) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idReviewer int, userID int) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -736,10 +741,15 @@ func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idPegawai int
 		return nil, err
 	}
 
-	// 2. Validate pegawai exists
-	if !s.externalService.ValidatePegawaiExists(idPegawai) {
-		return nil, errors.New("pegawai/reviewer tidak ditemukan")
+	// 2. Get reviewer from db_reviewer and validate
+	var reviewer models.Reviewer
+	if err := database.DB.Where("id = ? AND hapus = ? AND is_active = ?", idReviewer, 0, 1).First(&reviewer).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("reviewer tidak ditemukan atau tidak aktif")
+		}
+		return nil, err
 	}
+	idPegawai := reviewer.IDPegawai
 
 	// 3. Check if proposal has been uploaded
 	if pengajuan.FileProposal == "" {

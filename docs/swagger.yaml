@@ -39,10 +39,11 @@ definitions:
     type: object
   request.AssignReviewerRequest:
     properties:
-      id_pegawai:
+      id_reviewer:
+        description: ID from db_reviewer table
         type: integer
     required:
-    - id_pegawai
+    - id_reviewer
     type: object
   request.BulkCreateUserAksesRequest:
     properties:

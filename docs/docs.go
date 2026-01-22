@@ -5687,10 +5687,11 @@ const docTemplate = `{
         "request.AssignReviewerRequest": {
             "type": "object",
             "required": [
-                "id_pegawai"
+                "id_reviewer"
             ],
             "properties": {
-                "id_pegawai": {
+                "id_reviewer": {
+                    "description": "ID from db_reviewer table",
                     "type": "integer"
                 }
             }
