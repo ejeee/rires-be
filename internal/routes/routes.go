@@ -307,6 +307,9 @@ func Setup(app *fiber.App) {
 		// Review
 		pengajuanReviewer.Post("/judul/:id/review", pengajuanReviewerController.ReviewJudul)
 		pengajuanReviewer.Post("/proposal/:id/review", pengajuanReviewerController.ReviewProposal)
+
+		// Cancel Review
+		pengajuanReviewer.Post("/judul/:id/cancel-review", pengajuanReviewerController.CancelReviewJudul)
 	}
 
 	//user akses management routes

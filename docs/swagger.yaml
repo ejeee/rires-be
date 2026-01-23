@@ -3556,6 +3556,55 @@ paths:
       summary: Get Program Studi by Fakultas
       tags:
       - Reference Data
+  /reviewer/judul/{id}/cancel-review:
+    post:
+      consumes:
+      - application/json
+      description: Cancel/reset review for PKM title (status back to ON_REVIEW)
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel Review PKM Title
+      tags:
+      - Reviewer - Pengajuan PKM
   /reviewer/judul/{id}/review:
     post:
       consumes:

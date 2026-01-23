@@ -899,7 +899,7 @@ func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]re
 // ========================================
 
 // ReviewJudul submits review for PKM title
-func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudulRequest, userID int) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudulRequest, userID int, isAdmin bool) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -909,9 +909,11 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 		return nil, err
 	}
 
-	// 2. Verify reviewer is assigned
+	// 2. Verify reviewer is assigned OR user is admin
 	idPegawai := userID // Assume userID maps to pegawai.id
-	if pengajuan.IDPegawaiReviewerJudul == nil || *pengajuan.IDPegawaiReviewerJudul != idPegawai {
+	isAssignedReviewer := pengajuan.IDPegawaiReviewerJudul != nil && *pengajuan.IDPegawaiReviewerJudul == idPegawai
+
+	if !isAssignedReviewer && !isAdmin {
 		return nil, errors.New("anda tidak memiliki akses untuk mereview pengajuan ini")
 	}
 
@@ -979,11 +981,11 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 }
 
 // ========================================
-// REVIEWER - REVIEW PROPOSAL
+// REVIEWER - CANCEL REVIEW JUDUL
 // ========================================
 
-// ReviewProposal submits review for PKM proposal
-func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewProposalRequest, userID int) (*response.PengajuanResponse, error) {
+// CancelReviewJudul cancels/resets review for PKM title (back to ON_REVIEW status)
+func (s *PengajuanService) CancelReviewJudul(idPengajuan int, userID int, isAdmin bool) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -993,9 +995,80 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 		return nil, err
 	}
 
-	// 2. Verify reviewer is assigned
+	// 2. Verify reviewer is assigned OR user is admin
+	idPegawai := userID
+	isAssignedReviewer := pengajuan.IDPegawaiReviewerJudul != nil && *pengajuan.IDPegawaiReviewerJudul == idPegawai
+
+	if !isAssignedReviewer && !isAdmin {
+		return nil, errors.New("anda tidak memiliki akses untuk membatalkan review pengajuan ini")
+	}
+
+	// 3. Check if status allows cancel (must be ACC, REVISI, or TOLAK)
+	if pengajuan.StatusJudul != "ACC" && pengajuan.StatusJudul != "REVISI" && pengajuan.StatusJudul != "TOLAK" {
+		return nil, errors.New("hanya pengajuan yang sudah direview yang dapat dibatalkan")
+	}
+
+	// 4. START TRANSACTION
+	tx := database.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 5. Update status back to ON_REVIEW
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"status_judul": "ON_REVIEW",
+		"user_update":  userUpdateStr,
+	}
+
+	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 6. Soft-delete review record in db_review_judul
+	if err := tx.Model(&models.ReviewJudul{}).
+		Where("id_pengajuan = ? AND hapus = ?", idPengajuan, 0).
+		Updates(map[string]interface{}{
+			"hapus":       1,
+			"user_update": userUpdateStr,
+		}).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 7. COMMIT
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	// 8. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// REVIEWER - REVIEW PROPOSAL
+// ========================================
+
+// ReviewProposal submits review for PKM proposal
+func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewProposalRequest, userID int, isAdmin bool) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Verify reviewer is assigned OR user is admin
 	idPegawai := userID // Assume userID maps to pegawai.id
-	if pengajuan.IDPegawaiReviewerProposal == nil || *pengajuan.IDPegawaiReviewerProposal != idPegawai {
+	isAssignedReviewer := pengajuan.IDPegawaiReviewerProposal != nil && *pengajuan.IDPegawaiReviewerProposal == idPegawai
+
+	if !isAssignedReviewer && !isAdmin {
 		return nil, errors.New("anda tidak memiliki akses untuk mereview pengajuan ini")
 	}
 
