@@ -207,6 +207,7 @@ func (m *MapperService) MapPengajuanToListResponse(
 	kategori *models.KategoriPKM,
 	jumlahAnggota int,
 	reviewerProposal *external.Pegawai,
+	reviewerJudulNama string,
 ) *response.PengajuanListResponse {
 	if pengajuan == nil {
 		return nil
@@ -242,8 +243,10 @@ func (m *MapperService) MapPengajuanToListResponse(
 		resp.NamaKetua = ketua.NamaSiswa
 	}
 
-	// Map reviewer proposal
-	if reviewerProposal != nil {
+	// Set nama_reviewer - prioritize judul reviewer, fallback to proposal reviewer
+	if reviewerJudulNama != "" {
+		resp.NamaReviewer = reviewerJudulNama
+	} else if reviewerProposal != nil {
 		resp.NamaReviewer = reviewerProposal.GetNamaLengkap()
 	}
 

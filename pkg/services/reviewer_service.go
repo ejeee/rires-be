@@ -25,40 +25,20 @@ func NewReviewerService() *ReviewerService {
 	}
 }
 
-// GetAllReviewers gets all active reviewers
+// GetAllReviewers gets all active reviewers from local db_reviewer table
 func (s *ReviewerService) GetAllReviewers() ([]response.ReviewerResponse, error) {
 	var reviewers []models.Reviewer
-	if err := database.DB.Where("hapus = ?", 0).Order("nama_pegawai ASC").Find(&reviewers).Error; err != nil {
+	if err := database.DB.Where("hapus = ?", 0).Order("nama_reviewer ASC").Find(&reviewers).Error; err != nil {
 		return nil, err
-	}
-
-	// Get pegawai IDs to fetch nama lengkap from SIMPEG
-	pegawaiIDs := make([]int, len(reviewers))
-	for i, r := range reviewers {
-		pegawaiIDs[i] = r.IDPegawai
-	}
-
-	// Fetch pegawai data from SIMPEG
-	pegawaiList, _ := s.externalService.GetPegawaiByIDs(pegawaiIDs)
-
-	// Create map for quick lookup
-	pegawaiMap := make(map[int]string)
-	for _, p := range pegawaiList {
-		pegawaiMap[p.ID] = p.GetNamaLengkap()
 	}
 
 	result := make([]response.ReviewerResponse, 0)
 	for _, reviewer := range reviewers {
-		namaLengkap := pegawaiMap[reviewer.IDPegawai]
-		if namaLengkap == "" {
-			namaLengkap = reviewer.NamaPegawai // Fallback to nama_pegawai if not found
-		}
-
 		result = append(result, response.ReviewerResponse{
 			ID:          reviewer.ID,
 			IDPegawai:   reviewer.IDPegawai,
-			NamaPegawai: reviewer.NamaPegawai,
-			NamaLengkap: namaLengkap,
+			NamaPegawai: reviewer.NamaReviewer, // From local db_reviewer
+			NamaLengkap: reviewer.NamaReviewer, // Same value, already has gelar
 			EmailUmm:    reviewer.EmailUmm,
 			IsActive:    reviewer.IsActive,
 			TglInsert:   reviewer.TglInsert,
@@ -108,7 +88,7 @@ func (s *ReviewerService) GetAvailablePegawai() ([]response.AvailablePegawaiResp
 
 // ActivateReviewer activates pegawai as reviewer
 func (s *ReviewerService) ActivateReviewer(req *request.ActivateReviewerRequest, userID int) (*response.ReviewerResponse, error) {
-	// 1. Check if already activated
+	// 1. Check if already activated (hapus = 0)
 	var existing models.Reviewer
 	err := database.DB.Where("id_pegawai = ? AND hapus = ?", req.IDPegawai, 0).First(&existing).Error
 	if err == nil {
@@ -129,30 +109,57 @@ func (s *ReviewerService) ActivateReviewer(req *request.ActivateReviewerRequest,
 		return nil, errors.New("pegawai tidak memiliki email UMM, tidak dapat diaktifkan sebagai reviewer")
 	}
 
-	// 4. Create reviewer record
-	now := time.Now()
+	// 4. Check if soft-deleted record exists (for re-activation)
+	var softDeleted models.Reviewer
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
+	if err := database.DB.Where("id_pegawai = ? AND hapus = ?", req.IDPegawai, 1).First(&softDeleted).Error; err == nil {
+		// Re-activate: update existing soft-deleted record
+		updates := map[string]interface{}{
+			"nama_reviewer": pegawai.GetNamaLengkap(),
+			"email_umm":     pegawai.EmailUMM,
+			"is_active":     1,
+			"status":        1,
+			"hapus":         0,
+			"user_update":   userUpdateStr,
+		}
+
+		if err := database.DB.Model(&softDeleted).Updates(updates).Error; err != nil {
+			return nil, fmt.Errorf("gagal mengaktifkan kembali reviewer: %w", err)
+		}
+
+		return &response.ReviewerResponse{
+			ID:          softDeleted.ID,
+			IDPegawai:   softDeleted.IDPegawai,
+			NamaPegawai: pegawai.GetNamaLengkap(),
+			EmailUmm:    pegawai.EmailUMM,
+			IsActive:    1,
+			TglInsert:   softDeleted.TglInsert,
+		}, nil
+	}
+
+	// 5. Create new reviewer record
+	now := time.Now()
 	reviewer := &models.Reviewer{
-		IDPegawai:   pegawai.ID,
-		NamaPegawai: pegawai.NamaPegawai,
-		EmailUmm:    pegawai.EmailUMM,
-		IsActive:    1,
-		Status:      1,
-		Hapus:       0,
-		TglInsert:   &now,
-		UserUpdate:  userUpdateStr,
+		IDPegawai:    pegawai.ID,
+		NamaReviewer: pegawai.GetNamaLengkap(), // Full name with gelar
+		EmailUmm:     pegawai.EmailUMM,
+		IsActive:     1,
+		Status:       1,
+		Hapus:        0,
+		TglInsert:    &now,
+		UserUpdate:   userUpdateStr,
 	}
 
 	if err := database.DB.Create(reviewer).Error; err != nil {
 		return nil, fmt.Errorf("gagal mengaktifkan reviewer: %w", err)
 	}
 
-	// 5. Return response
+	// 6. Return response
 	return &response.ReviewerResponse{
 		ID:          reviewer.ID,
 		IDPegawai:   reviewer.IDPegawai,
-		NamaPegawai: reviewer.NamaPegawai,
+		NamaPegawai: reviewer.NamaReviewer,
 		EmailUmm:    reviewer.EmailUmm,
 		IsActive:    reviewer.IsActive,
 		TglInsert:   reviewer.TglInsert,
@@ -186,7 +193,7 @@ func (s *ReviewerService) UpdateReviewer(id int, req *request.UpdateReviewerRequ
 	return &response.ReviewerResponse{
 		ID:          reviewer.ID,
 		IDPegawai:   reviewer.IDPegawai,
-		NamaPegawai: reviewer.NamaPegawai,
+		NamaPegawai: reviewer.NamaReviewer,
 		EmailUmm:    reviewer.EmailUmm,
 		IsActive:    req.IsActive,
 		TglInsert:   reviewer.TglInsert,

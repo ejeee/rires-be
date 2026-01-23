@@ -6,7 +6,7 @@ import "time"
 type Reviewer struct {
 	ID           int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	IDPegawai    int        `gorm:"column:id_pegawai;type:int(11);uniqueIndex" json:"id_pegawai"`
-	NamaPegawai  string     `gorm:"column:nama_pegawai;type:varchar(255)" json:"nama_pegawai"`
+	NamaReviewer string     `gorm:"column:nama_reviewer;type:varchar(255)" json:"nama_reviewer"`
 	EmailUmm     string     `gorm:"column:email_umm;type:varchar(255)" json:"email_umm"`
 	IsActive     int        `gorm:"column:is_active;type:int(1);default:1" json:"is_active"` // 1=active, 0=inactive
 	Status       int        `gorm:"column:status;type:int(1);default:1" json:"status"`

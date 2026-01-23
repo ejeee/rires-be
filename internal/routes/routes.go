@@ -279,6 +279,9 @@ func Setup(app *fiber.App) {
 		pengajuanAdmin.Post("/:id/assign-reviewer-judul", pengajuanAdminController.AssignReviewerJudul)
 		pengajuanAdmin.Post("/:id/assign-reviewer-proposal", pengajuanAdminController.AssignReviewerProposal)
 
+		// Cancel Plotting
+		pengajuanAdmin.Post("/:id/cancel-plotting-judul", pengajuanAdminController.CancelPlottingJudul)
+
 		// Announce Final Result
 		pengajuanAdmin.Post("/:id/announce", pengajuanAdminController.AnnounceFinalResult)
 	}

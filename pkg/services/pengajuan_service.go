@@ -264,13 +264,29 @@ func (s *PengajuanService) GetPengajuanDetail(idPengajuan int) (*response.Pengaj
 		Where("id_pengajuan = ?", pengajuan.ID).
 		Find(&parameterList)
 
-	// 6. Get reviewers
+	// 6. Get reviewers from local db_reviewer (with gelar stored)
 	var reviewerJudul, reviewerProposal *external.Pegawai
 	if pengajuan.IDPegawaiReviewerJudul != nil {
-		reviewerJudul, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerJudul)
+		var reviewerLocal models.Reviewer
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerJudul, 0).First(&reviewerLocal).Error; err == nil {
+			// Create minimal pegawai struct for mapper compatibility
+			reviewerJudul = &external.Pegawai{
+				ID:          reviewerLocal.IDPegawai,
+				NamaPegawai: reviewerLocal.NamaReviewer, // Already has gelar
+				EmailUMM:    reviewerLocal.EmailUmm,
+			}
+		}
 	}
 	if pengajuan.IDPegawaiReviewerProposal != nil {
-		reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		var reviewerLocal models.Reviewer
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerProposal, 0).First(&reviewerLocal).Error; err == nil {
+			// Create minimal pegawai struct for mapper compatibility
+			reviewerProposal = &external.Pegawai{
+				ID:          reviewerLocal.IDPegawai,
+				NamaPegawai: reviewerLocal.NamaReviewer, // Already has gelar
+				EmailUMM:    reviewerLocal.EmailUmm,
+			}
+		}
 	}
 
 	// 7. Get review history
@@ -359,6 +375,7 @@ func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string
 			&kategori,
 			int(anggotaCount),
 			reviewerProposal,
+			"", // reviewerJudulNama not needed for my-submissions
 		)
 
 		result = append(result, *listResp)
@@ -650,10 +667,19 @@ func (s *PengajuanService) GetAllPengajuan(filters map[string]interface{}) ([]re
 			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
 			Count(&anggotaCount)
 
-		// Get reviewer proposal (if assigned)
+		// Get reviewer proposal (if assigned) - from SIMPEG
 		var reviewerProposal *external.Pegawai
 		if pengajuan.IDPegawaiReviewerProposal != nil {
 			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		}
+
+		// Get reviewer judul nama from local db_reviewer (with gelar)
+		var reviewerJudulNama string
+		if pengajuan.IDPegawaiReviewerJudul != nil {
+			var reviewer models.Reviewer
+			if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerJudul, 0).First(&reviewer).Error; err == nil {
+				reviewerJudulNama = reviewer.NamaReviewer // Already has gelar from ActivateReviewer
+			}
 		}
 
 		// Map to list response
@@ -663,6 +689,7 @@ func (s *PengajuanService) GetAllPengajuan(filters map[string]interface{}) ([]re
 			&kategori,
 			int(anggotaCount),
 			reviewerProposal,
+			reviewerJudulNama,
 		)
 
 		result = append(result, *listResp)
@@ -725,8 +752,45 @@ func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idReviewer int, 
 	}
 
 	database.DB.Create(plotting)
-
 	// 6. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// CancelPlottingJudul cancels/removes reviewer assignment for judul review
+func (s *PengajuanService) CancelPlottingJudul(idPengajuan int, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Check if reviewer is assigned
+	if pengajuan.IDPegawaiReviewerJudul == nil {
+		return nil, errors.New("tidak ada reviewer yang di-assign untuk judul ini")
+	}
+
+	// 3. Check if status allows cancel (must be ON_REVIEW, not already reviewed)
+	if pengajuan.StatusJudul != "ON_REVIEW" {
+		return nil, errors.New("plotting hanya dapat dibatalkan untuk pengajuan dengan status ON_REVIEW")
+	}
+
+	// 4. Update pengajuan - remove reviewer and reset status to PENDING
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"id_pegawai_reviewer_judul": nil,
+		"status_judul":              "PENDING",
+		"user_update":               userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// 5. Return updated detail
 	return s.GetPengajuanDetail(idPengajuan)
 }
 
@@ -886,6 +950,7 @@ func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]re
 			&kategori,
 			int(anggotaCount),
 			reviewerProposal,
+			"", // reviewerJudulNama - reviewer already knows themselves
 		)
 
 		result = append(result, *listResp)

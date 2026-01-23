@@ -1612,6 +1612,51 @@ paths:
       summary: Assign Reviewer for Proposal
       tags:
       - Admin - Pengajuan PKM
+  /admin/pengajuan/{id}/cancel-plotting-judul:
+    post:
+      consumes:
+      - application/json
+      description: Admin cancels/removes reviewer assignment for PKM title review
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Pengajuan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PengajuanResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel Plotting Reviewer Judul
+      tags:
+      - Admin - Pengajuan PKM
   /admin/reviewers:
     get:
       consumes:
