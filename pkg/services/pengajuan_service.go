@@ -372,7 +372,7 @@ func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string
 // ========================================
 
 // UpdateJudul updates/revises PKM title
-func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudulRequest, nimKetua string) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudulRequest, nimKetua string, isAdmin bool) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -382,8 +382,8 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 		return nil, err
 	}
 
-	// 2. Check if user is ketua
-	if !pengajuan.IsOwner(nimKetua) {
+	// 2. Check if user is ketua OR admin
+	if !pengajuan.IsOwner(nimKetua) && !isAdmin {
 		return nil, errors.New("hanya ketua yang dapat merevisi judul")
 	}
 
@@ -413,7 +413,7 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 	// 6. Update judul and biodata
 	updates := map[string]interface{}{
 		"judul":        req.Judul,
-		"status_judul": "PENDING", // Reset to PENDING after revision
+		"status_judul": "ON_REVIEW", // Back to ON_REVIEW, NOT PENDING (keep reviewer assignment)
 		"user_update":  nimKetua,
 	}
 
@@ -936,11 +936,20 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 		}
 	}()
 
-	// 6. Create review record
+	// 6. Get reviewer's id_reviewer from db_reviewer
+	var reviewer models.Reviewer
+	var idReviewer int
+	if pengajuan.IDPegawaiReviewerJudul != nil {
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerJudul, 0).First(&reviewer).Error; err == nil {
+			idReviewer = reviewer.ID
+		}
+	}
+
+	// 7. Create review record
 	now := time.Now()
 	review := &models.ReviewJudul{
 		IDPengajuan:    pengajuan.ID,
-		IDPegawai:      idPegawai,
+		IDReviewer:     idReviewer,
 		IDStatusReview: req.IDStatusReview,
 		Catatan:        req.Catatan,
 		TglReview:      &now,
@@ -1091,11 +1100,20 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 		}
 	}()
 
-	// 6. Create review record
+	// 6. Get reviewer's id_reviewer from db_reviewer
+	var reviewer models.Reviewer
+	var idReviewer int
+	if pengajuan.IDPegawaiReviewerProposal != nil {
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerProposal, 0).First(&reviewer).Error; err == nil {
+			idReviewer = reviewer.ID
+		}
+	}
+
+	// 7. Create review record
 	now := time.Now()
 	review := &models.ReviewProposal{
 		IDPengajuan:    pengajuan.ID,
-		IDPegawai:      idPegawai,
+		IDReviewer:     idReviewer,
 		IDStatusReview: req.IDStatusReview,
 		Catatan:        req.Catatan,
 		TglReview:      &now,

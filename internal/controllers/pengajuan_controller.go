@@ -247,11 +247,12 @@ func (ctrl *PengajuanController) UpdateJudul(c *fiber.Ctx) error {
 		))
 	}
 
-	// 4. Get authenticated user
+	// 4. Get authenticated user and check if admin
 	nimKetua := utils.GetCurrentUsername(c)
+	isAdmin := utils.IsAdmin(c)
 
 	// 5. Call service
-	result, err := ctrl.service.UpdateJudul(id, &req, nimKetua)
+	result, err := ctrl.service.UpdateJudul(id, &req, nimKetua, isAdmin)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to update judul",

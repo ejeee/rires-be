@@ -6,7 +6,7 @@ import "time"
 type ReviewProposal struct {
 	ID             int        `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	IDPengajuan    int        `gorm:"column:id_pengajuan;type:int" json:"id_pengajuan"`
-	IDPegawai      int        `gorm:"column:id_pegawai;type:int" json:"id_pegawai"`
+	IDReviewer     int        `gorm:"column:id_reviewer;type:int" json:"id_reviewer"`
 	IDStatusReview int        `gorm:"column:id_status_review;type:int" json:"id_status_review"` // FK ke db_status_review
 	Catatan        string     `gorm:"column:catatan;type:text" json:"catatan"`
 	TglReview      *time.Time `gorm:"column:tgl_review;type:datetime" json:"tgl_review"`
