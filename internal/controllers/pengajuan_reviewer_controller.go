@@ -284,3 +284,48 @@ func (ctrl *PengajuanReviewerController) CancelReviewJudul(c *fiber.Ctx) error {
 		result,
 	))
 }
+
+// CancelReviewProposal godoc
+// @Summary Cancel Review Proposal
+// @Description Reviewer/admin cancels submitted review for proposal (resets back to ON_REVIEW)
+// @Tags Reviewer - Review Proposal
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param id path int true "Pengajuan ID"
+// @Success 200 {object} response.APIResponse{data=response.PengajuanResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 401 {object} response.APIResponse
+// @Failure 403 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Security BearerAuth
+// @Router /reviewer/proposal/{id}/cancel-review [post]
+func (ctrl *PengajuanReviewerController) CancelReviewProposal(c *fiber.Ctx) error {
+	// 1. Parse ID from URL
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Invalid pengajuan ID",
+			err.Error(),
+		))
+	}
+
+	// 2. Get authenticated user and check if admin
+	userID := int(utils.GetCurrentUserID(c))
+	isAdmin := utils.IsAdmin(c)
+
+	// 3. Call service
+	result, err := ctrl.service.CancelReviewProposal(id, userID, isAdmin)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Failed to cancel review",
+			err.Error(),
+		))
+	}
+
+	// 4. Return success
+	return c.JSON(response.SuccessResponse(
+		"Review proposal berhasil dibatalkan",
+		result,
+	))
+}

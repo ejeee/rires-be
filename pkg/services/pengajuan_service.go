@@ -534,9 +534,15 @@ func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileH
 	}
 
 	// 5. Update pengajuan (store just filename, frontend constructs full URL)
+	// If reviewer already assigned (re-upload after revision), set to ON_REVIEW, else PENDING
+	newStatus := "PENDING"
+	if pengajuan.IDPegawaiReviewerProposal != nil {
+		newStatus = "ON_REVIEW" // Keep reviewer assigned
+	}
+
 	updates := map[string]interface{}{
 		"file_proposal":   filename,
-		"status_proposal": "PENDING", // Set to PENDING after upload
+		"status_proposal": newStatus,
 		"user_update":     nimKetua,
 	}
 
@@ -589,9 +595,10 @@ func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileH
 	}
 
 	// 6. Update pengajuan (store just filename)
+	// Status: REVISI -> ON_REVIEW (keep reviewer assigned, don't reset to PENDING)
 	updates := map[string]interface{}{
 		"file_proposal":   filename,
-		"status_proposal": "PENDING", // Reset to PENDING after revision
+		"status_proposal": "ON_REVIEW", // Keep reviewer assigned, not PENDING
 		"user_update":     nimKetua,
 	}
 
@@ -1146,6 +1153,71 @@ func (s *PengajuanService) CancelReviewJudul(idPengajuan int, userID int, isAdmi
 
 	// 6. Soft-delete review record in db_review_judul
 	if err := tx.Model(&models.ReviewJudul{}).
+		Where("id_pengajuan = ? AND hapus = ?", idPengajuan, 0).
+		Updates(map[string]interface{}{
+			"hapus":       1,
+			"user_update": userUpdateStr,
+		}).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 7. COMMIT
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	// 8. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// CancelReviewProposal cancels/resets review for PKM proposal (back to ON_REVIEW status)
+func (s *PengajuanService) CancelReviewProposal(idPengajuan int, userID int, isAdmin bool) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Verify reviewer is assigned OR user is admin
+	idPegawai := userID
+	isAssignedReviewer := pengajuan.IDPegawaiReviewerProposal != nil && *pengajuan.IDPegawaiReviewerProposal == idPegawai
+
+	if !isAssignedReviewer && !isAdmin {
+		return nil, errors.New("anda tidak memiliki akses untuk membatalkan review proposal ini")
+	}
+
+	// 3. Check if status allows cancel (must be ACC, REVISI, or TOLAK)
+	if pengajuan.StatusProposal != "ACC" && pengajuan.StatusProposal != "REVISI" && pengajuan.StatusProposal != "TOLAK" {
+		return nil, errors.New("hanya proposal yang sudah direview yang dapat dibatalkan")
+	}
+
+	// 4. START TRANSACTION
+	tx := database.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 5. Update status back to ON_REVIEW
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"status_proposal": "ON_REVIEW",
+		"user_update":     userUpdateStr,
+	}
+
+	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 6. Soft-delete review record in db_review_proposal
+	if err := tx.Model(&models.ReviewProposal{}).
 		Where("id_pengajuan = ? AND hapus = ?", idPengajuan, 0).
 		Updates(map[string]interface{}{
 			"hapus":       1,
