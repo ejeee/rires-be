@@ -281,6 +281,7 @@ func Setup(app *fiber.App) {
 
 		// Cancel Plotting
 		pengajuanAdmin.Post("/:id/cancel-plotting-judul", pengajuanAdminController.CancelPlottingJudul)
+		pengajuanAdmin.Post("/:id/cancel-plotting-proposal", pengajuanAdminController.CancelPlottingProposal)
 
 		// Upload Proposal (admin can upload on behalf of mahasiswa)
 		pengajuanAdmin.Post("/:id/proposal", pengajuanAdminController.UploadProposal)

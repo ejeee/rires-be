@@ -797,6 +797,44 @@ func (s *PengajuanService) CancelPlottingJudul(idPengajuan int, userID int) (*re
 	return s.GetPengajuanDetail(idPengajuan)
 }
 
+// CancelPlottingProposal cancels/removes reviewer assignment for proposal review
+func (s *PengajuanService) CancelPlottingProposal(idPengajuan int, userID int) (*response.PengajuanResponse, error) {
+	// 1. Get pengajuan
+	var pengajuan models.Pengajuan
+	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("pengajuan tidak ditemukan")
+		}
+		return nil, err
+	}
+
+	// 2. Check if reviewer is assigned
+	if pengajuan.IDPegawaiReviewerProposal == nil {
+		return nil, errors.New("tidak ada reviewer yang di-assign untuk proposal ini")
+	}
+
+	// 3. Check if status allows cancel (must be ON_REVIEW, not already reviewed)
+	if pengajuan.StatusProposal != "ON_REVIEW" {
+		return nil, errors.New("plotting hanya dapat dibatalkan untuk proposal dengan status ON_REVIEW")
+	}
+
+	// 4. Update pengajuan - remove reviewer and reset status to PENDING
+	userUpdateStr := fmt.Sprintf("%d", userID)
+
+	updates := map[string]interface{}{
+		"id_pegawai_reviewer_proposal": nil,
+		"status_proposal":              "PENDING",
+		"user_update":                  userUpdateStr,
+	}
+
+	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	// 5. Return updated detail
+	return s.GetPengajuanDetail(idPengajuan)
+}
+
 // AssignReviewerProposal assigns reviewer for proposal review
 func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idReviewer int, userID int) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
