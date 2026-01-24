@@ -226,6 +226,10 @@ func (m *MapperService) MapPengajuanToListResponse(
 
 		// Flat fields
 		NIMKetua:        pengajuan.NIMKetua,
+		EmailKetua:      pengajuan.EmailKetua,
+		NoHPKetua:       pengajuan.NoHPKetua,
+		ProgramStudi:    pengajuan.ProgramStudi,
+		Fakultas:        pengajuan.Fakultas,
 		CatatanProposal: pengajuan.CatatanReviewProposal,
 		TanggalReview:   pengajuan.TglReviewProposal,
 		FileProposal:    pengajuan.FileProposal,

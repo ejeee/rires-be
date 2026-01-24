@@ -79,6 +79,10 @@ type PengajuanListResponse struct {
 	// Flat fields for admin list view
 	NIMKetua        string     `json:"nim_ketua,omitempty"`
 	NamaKetua       string     `json:"nama_ketua,omitempty"`
+	EmailKetua      string     `json:"email_ketua,omitempty"`
+	NoHPKetua       string     `json:"no_hp_ketua,omitempty"`
+	ProgramStudi    string     `json:"program_studi,omitempty"`
+	Fakultas        string     `json:"fakultas,omitempty"`
 	NamaKategori    string     `json:"nama_kategori,omitempty"`
 	NamaReviewer    string     `json:"nama_reviewer,omitempty"`
 	CatatanProposal string     `json:"catatan_proposal,omitempty"`
