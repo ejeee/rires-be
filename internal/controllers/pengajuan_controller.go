@@ -306,8 +306,8 @@ func (ctrl *PengajuanController) UploadProposal(c *fiber.Ctx) error {
 	// 3. Get authenticated user
 	nimKetua := utils.GetCurrentUsername(c)
 
-	// 4. Call service
-	result, err := ctrl.service.UploadProposal(id, file, nimKetua)
+	// 4. Call service (not admin)
+	result, err := ctrl.service.UploadProposal(id, file, nimKetua, false)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to upload proposal",

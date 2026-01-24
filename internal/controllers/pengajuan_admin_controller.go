@@ -292,6 +292,59 @@ func (ctrl *PengajuanAdminController) CancelPlottingJudul(c *fiber.Ctx) error {
 	))
 }
 
+// UploadProposal godoc
+// @Summary Admin Upload Proposal
+// @Description Admin uploads proposal file for PKM submission (bypasses owner check)
+// @Tags Admin - Pengajuan PKM
+// @Accept multipart/form-data
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param id path int true "Pengajuan ID"
+// @Param file formance file true "Proposal file (PDF)"
+// @Success 200 {object} response.APIResponse{data=response.PengajuanResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 401 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Security BearerAuth
+// @Router /admin/pengajuan/{id}/proposal [post]
+func (ctrl *PengajuanAdminController) UploadProposal(c *fiber.Ctx) error {
+	// 1. Parse ID from URL
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Invalid pengajuan ID",
+			err.Error(),
+		))
+	}
+
+	// 2. Get uploaded file
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"File is required",
+			err.Error(),
+		))
+	}
+
+	// 3. Get admin username for audit
+	username := utils.GetCurrentUsername(c)
+
+	// 4. Call service with isAdmin = true
+	result, err := ctrl.service.UploadProposal(id, file, username, true)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
+			"Failed to upload proposal",
+			err.Error(),
+		))
+	}
+
+	// 5. Return success
+	return c.JSON(response.SuccessResponse(
+		"Proposal berhasil diupload oleh admin",
+		result,
+	))
+}
+
 // AnnounceFinalResult godoc
 // @Summary Announce Final Result
 // @Description Admin announces final result (LOLOS/TIDAK_LOLOS)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"strings"
 	"time"
 
 	"rires-be/internal/dto/request"
@@ -506,7 +507,7 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 // ========================================
 
 // UploadProposal uploads proposal file
-func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string) (*response.PengajuanResponse, error) {
+func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileHeader, nimKetua string, isAdmin bool) (*response.PengajuanResponse, error) {
 	// 1. Get pengajuan
 	var pengajuan models.Pengajuan
 	if err := database.DB.Where("id = ? AND hapus = ?", idPengajuan, 0).First(&pengajuan).Error; err != nil {
@@ -516,8 +517,8 @@ func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileH
 		return nil, err
 	}
 
-	// 2. Check if user is ketua
-	if !pengajuan.IsOwner(nimKetua) {
+	// 2. Check if user is ketua OR admin
+	if !pengajuan.IsOwner(nimKetua) && !isAdmin {
 		return nil, errors.New("hanya ketua yang dapat upload proposal")
 	}
 
@@ -532,7 +533,7 @@ func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileH
 		return nil, fmt.Errorf("gagal upload file: %w", err)
 	}
 
-	// 5. Update pengajuan
+	// 5. Update pengajuan (store just filename, frontend constructs full URL)
 	updates := map[string]interface{}{
 		"file_proposal":   filename,
 		"status_proposal": "PENDING", // Set to PENDING after upload
@@ -574,9 +575,11 @@ func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileH
 		return nil, errors.New("proposal hanya dapat direvisi jika status = REVISI")
 	}
 
-	// 4. Delete old file
+	// 4. Delete old file (handle both old and new format)
 	if pengajuan.FileProposal != "" {
-		s.fileService.DeleteFile(pengajuan.FileProposal)
+		// Strip proposals/ prefix if exists
+		oldFilename := strings.TrimPrefix(pengajuan.FileProposal, "proposals/")
+		s.fileService.DeleteFile(oldFilename)
 	}
 
 	// 5. Upload new file
@@ -585,7 +588,7 @@ func (s *PengajuanService) ReviseProposal(idPengajuan int, file *multipart.FileH
 		return nil, fmt.Errorf("gagal upload file: %w", err)
 	}
 
-	// 6. Update pengajuan
+	// 6. Update pengajuan (store just filename)
 	updates := map[string]interface{}{
 		"file_proposal":   filename,
 		"status_proposal": "PENDING", // Reset to PENDING after revision

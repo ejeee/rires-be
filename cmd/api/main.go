@@ -66,6 +66,12 @@ func main() {
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
 
+	// Serve static files from /uploads directory
+	app.Static("/uploads", "./uploads", fiber.Static{
+		Browse:   false,
+		Download: true,
+	})
+
 	// Setup routes
 	routes.Setup(app)
 
