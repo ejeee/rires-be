@@ -139,6 +139,122 @@ func (ctrl *MenuController) GetTree(c *fiber.Ctx) error {
 	return utils.SuccessResponse(c, "Menu tree retrieved successfully", tree)
 }
 
+// GetMyMenuTree godoc
+// @Summary Get My Menu Tree
+// @Description Get menus filtered by current user's access level (for sidebar/navigation)
+// @Tags Menu
+// @Accept json
+// @Produce json
+// @Success 200 {object} object{success=bool,message=string,data=[]response.MenuTreeResponse}
+// @Failure 500 {object} object{success=bool,message=string}
+// @Security BearerAuth
+// @Router /menus/my-tree [get]
+func (ctrl *MenuController) GetMyMenuTree(c *fiber.Ctx) error {
+	// 1. Get user's level directly from JWT token
+	idUserLevel := utils.GetCurrentUserLevel(c)
+
+	// Superadmin (1) and Admin (2) get all menus
+	if idUserLevel == 1 || idUserLevel == 2 {
+		return ctrl.GetTree(c)
+	}
+
+	// If no level found, return error
+	if idUserLevel == 0 {
+		return utils.InternalServerErrorResponse(c, "User level not found in token")
+	}
+
+	// 2. Get menu IDs that user has access to from db_user_akses
+	var userAccesses []models.UserAkses
+	if err := database.DB.Where("id_user_level = ? AND status = ? AND hapus = ?", idUserLevel, 1, 0).
+		Find(&userAccesses).Error; err != nil {
+		return utils.InternalServerErrorResponse(c, "Failed to fetch user access")
+	}
+
+	// Extract menu IDs
+	menuIDs := make([]int, 0, len(userAccesses))
+	for _, access := range userAccesses {
+		menuIDs = append(menuIDs, access.IDMenu)
+	}
+
+	// If no access defined, return empty array
+	if len(menuIDs) == 0 {
+		return utils.SuccessResponse(c, "Menu tree retrieved successfully", []response.MenuTreeResponse{})
+	}
+
+	// 3. Get all parent menu IDs (include parent menus for tree structure)
+	allMenuIDs := getMenuIDsWithParents(menuIDs)
+
+	// 4. Get menus filtered by IDs
+	var menus []models.Menu
+	if err := database.DB.Where("id IN ? AND hapus = ? AND status = ?", allMenuIDs, 0, 1).
+		Order("id_parent ASC, urutan ASC").
+		Find(&menus).Error; err != nil {
+		return utils.InternalServerErrorResponse(c, "Failed to fetch menus")
+	}
+
+	// 5. Build tree structure
+	tree := buildMenuTree(menus, 0)
+
+	return utils.SuccessResponse(c, "Menu tree retrieved successfully", tree)
+}
+
+// Helper function to map user_type to level name
+func getUserLevelName(userType string) string {
+	switch userType {
+	case "admin":
+		return "Admin"
+	case "mahasiswa":
+		return "Mahasiswa"
+	case "pegawai":
+		return "Reviewer"
+	default:
+		return "Mahasiswa"
+	}
+}
+
+// Helper function to get all menu IDs including parent menus
+func getMenuIDsWithParents(menuIDs []int) []int {
+	allIDs := make(map[int]bool)
+
+	// Add initial menu IDs
+	for _, id := range menuIDs {
+		allIDs[id] = true
+	}
+
+	// Get all menus to find parents
+	var allMenus []models.Menu
+	database.DB.Where("hapus = ?", 0).Find(&allMenus)
+
+	// Create map for quick lookup
+	menuMap := make(map[int]models.Menu)
+	for _, menu := range allMenus {
+		menuMap[menu.ID] = menu
+	}
+
+	// Add parent IDs recursively
+	for _, id := range menuIDs {
+		addParentIDs(id, menuMap, allIDs)
+	}
+
+	// Convert map to slice
+	result := make([]int, 0, len(allIDs))
+	for id := range allIDs {
+		result = append(result, id)
+	}
+
+	return result
+}
+
+// Helper to recursively add parent IDs
+func addParentIDs(menuID int, menuMap map[int]models.Menu, allIDs map[int]bool) {
+	if menu, exists := menuMap[menuID]; exists {
+		if menu.IDParent > 0 {
+			allIDs[menu.IDParent] = true
+			addParentIDs(menu.IDParent, menuMap, allIDs)
+		}
+	}
+}
+
 // Helper function to build tree structure
 func buildMenuTree(menus []models.Menu, IDParent int) []response.MenuTreeResponse {
 	var tree []response.MenuTreeResponse

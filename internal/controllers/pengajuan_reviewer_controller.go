@@ -40,16 +40,22 @@ func NewPengajuanReviewerController() *PengajuanReviewerController {
 // @Security BearerAuth
 // @Router /reviewer/my-assignments [get]
 func (ctrl *PengajuanReviewerController) GetMyAssignments(c *fiber.Ctx) error {
-	// 1. Get authenticated reviewer (pegawai ID from JWT)
-	// For pegawai, user_id in JWT is their ID from db_user
-	// We need to map this to pegawai.id in SIMPEG database
-	userID := int(utils.GetCurrentUserID(c))
+	// 1. Get authenticated reviewer (id_pegawai from JWT user_data)
+	userData := utils.GetCurrentUserData(c)
+	idPegawai, _ := strconv.Atoi(userData["id_pegawai"])
+
+	if idPegawai == 0 {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.ErrorResponse(
+			"Reviewer ID not found in token. Please relogin.",
+			"",
+		))
+	}
 
 	// 2. Get filter
 	tipeFilter := c.Query("tipe", "all") // JUDUL, PROPOSAL, or all
 
 	// 3. Call service
-	result, err := ctrl.service.GetMyAssignments(userID, tipeFilter)
+	result, err := ctrl.service.GetMyAssignments(idPegawai, tipeFilter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse(
 			"Failed to get assignments",
@@ -109,11 +115,19 @@ func (ctrl *PengajuanReviewerController) ReviewJudul(c *fiber.Ctx) error {
 	}
 
 	// 4. Get authenticated reviewer and check if admin
-	userID := int(utils.GetCurrentUserID(c))
+	userData := utils.GetCurrentUserData(c)
+	idPegawai, _ := strconv.Atoi(userData["id_pegawai"])
 	isAdmin := utils.IsAdmin(c)
 
+	if idPegawai == 0 && !isAdmin {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.ErrorResponse(
+			"Reviewer ID not found in token. Please relogin.",
+			"",
+		))
+	}
+
 	// 5. Call service
-	result, err := ctrl.service.ReviewJudul(id, &req, userID, isAdmin)
+	result, err := ctrl.service.ReviewJudul(id, &req, idPegawai, isAdmin)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to submit review",
@@ -173,11 +187,19 @@ func (ctrl *PengajuanReviewerController) ReviewProposal(c *fiber.Ctx) error {
 	}
 
 	// 4. Get authenticated reviewer and check if admin
-	userID := int(utils.GetCurrentUserID(c))
+	userData := utils.GetCurrentUserData(c)
+	idPegawai, _ := strconv.Atoi(userData["id_pegawai"])
 	isAdmin := utils.IsAdmin(c)
 
+	if idPegawai == 0 && !isAdmin {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.ErrorResponse(
+			"Reviewer ID not found in token. Please relogin.",
+			"",
+		))
+	}
+
 	// 5. Call service
-	result, err := ctrl.service.ReviewProposal(id, &req, userID, isAdmin)
+	result, err := ctrl.service.ReviewProposal(id, &req, idPegawai, isAdmin)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to submit review",
@@ -227,11 +249,27 @@ func (ctrl *PengajuanReviewerController) GetPengajuanDetail(c *fiber.Ctx) error 
 	}
 
 	// 3. Verify reviewer has access (assigned to them)
-	userID := int(utils.GetCurrentUserID(c))
+	userData := utils.GetCurrentUserData(c)
+	idPegawai, _ := strconv.Atoi(userData["id_pegawai"])
+	isAdmin := utils.IsAdmin(c)
 
 	// Check if reviewer is assigned to this pengajuan
-	// (This validation will be done in service layer later if needed)
-	_ = userID // TODO: Implement access check
+	if !isAdmin {
+		isAssigned := false
+		if result.ReviewerJudul != nil && result.ReviewerJudul.ID == idPegawai {
+			isAssigned = true
+		}
+		if result.ReviewerProposal != nil && result.ReviewerProposal.ID == idPegawai {
+			isAssigned = true
+		}
+
+		if !isAssigned {
+			return c.Status(fiber.StatusForbidden).JSON(response.ErrorResponse(
+				"Access denied. You are not assigned to this pengajuan.",
+				"",
+			))
+		}
+	}
 
 	// 4. Return success
 	return c.JSON(response.SuccessResponse(
@@ -266,11 +304,19 @@ func (ctrl *PengajuanReviewerController) CancelReviewJudul(c *fiber.Ctx) error {
 	}
 
 	// 2. Get authenticated user and check if admin
-	userID := int(utils.GetCurrentUserID(c))
+	userData := utils.GetCurrentUserData(c)
+	idPegawai, _ := strconv.Atoi(userData["id_pegawai"])
 	isAdmin := utils.IsAdmin(c)
 
+	if idPegawai == 0 && !isAdmin {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.ErrorResponse(
+			"Reviewer ID not found in token. Please relogin.",
+			"",
+		))
+	}
+
 	// 3. Call service
-	result, err := ctrl.service.CancelReviewJudul(id, userID, isAdmin)
+	result, err := ctrl.service.CancelReviewJudul(id, idPegawai, isAdmin)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to cancel review",
@@ -311,11 +357,19 @@ func (ctrl *PengajuanReviewerController) CancelReviewProposal(c *fiber.Ctx) erro
 	}
 
 	// 2. Get authenticated user and check if admin
-	userID := int(utils.GetCurrentUserID(c))
+	userData := utils.GetCurrentUserData(c)
+	idPegawai, _ := strconv.Atoi(userData["id_pegawai"])
 	isAdmin := utils.IsAdmin(c)
 
+	if idPegawai == 0 && !isAdmin {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.ErrorResponse(
+			"Reviewer ID not found in token. Please relogin.",
+			"",
+		))
+	}
+
 	// 3. Call service
-	result, err := ctrl.service.CancelReviewProposal(id, userID, isAdmin)
+	result, err := ctrl.service.CancelReviewProposal(id, idPegawai, isAdmin)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(response.ErrorResponse(
 			"Failed to cancel review",

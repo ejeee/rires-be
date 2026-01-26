@@ -82,11 +82,13 @@ func (ctrl *AuthController) LoginAdmin(c *fiber.Ctx) error {
 	}
 
 	// Generate JWT token with user data
+	// id_user_level from db_user.level_user (1=superadmin, 2=admin)
 	token, err := utils.GenerateTokenWithClaims(
 		uint(user.ID),
 		user.Username,
 		"",
 		"admin",
+		user.LevelUser, // Use level_user from db_user
 		map[string]string{
 			"nama_user":  user.NamaUser,
 			"level_user": strconv.Itoa(user.LevelUser),
@@ -154,11 +156,13 @@ func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 	}
 
 	// Generate JWT token with mahasiswa data
+	// id_user_level = 3 (mahasiswa)
 	token, err := utils.GenerateTokenWithClaims(
 		userID, // Use user_id from db_user if exists, otherwise 0
 		mahasiswa.NIM,
 		"",
 		"mahasiswa",
+		3, // Mahasiswa level
 		map[string]string{
 			"nama":     mahasiswa.Nama,
 			"prodi":    mahasiswa.Prodi,
@@ -213,16 +217,50 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
-	// Generate JWT token with pegawai data
+	// Check if pegawai is an active reviewer in db_reviewer
+	// Try multiple lookup strategies: email from API, email from input (username), nama
+	var reviewer models.Reviewer
+	found := false
+
+	// Strategy 1: lookup by email from API response
+	if pegawai.Email != "" {
+		if err := database.DB.Where("email_umm = ? AND is_active = ? AND hapus = ?", pegawai.Email, 1, 0).First(&reviewer).Error; err == nil {
+			found = true
+		}
+	}
+
+	// Strategy 2: lookup by username (email input) if not found
+	if !found && req.Username != "" {
+		if err := database.DB.Where("email_umm = ? AND is_active = ? AND hapus = ?", req.Username, 1, 0).First(&reviewer).Error; err == nil {
+			found = true
+		}
+	}
+
+	// Strategy 3: lookup by nama_reviewer if not found
+	if !found && pegawai.Nama != "" {
+		if err := database.DB.Where("nama_reviewer = ? AND is_active = ? AND hapus = ?", pegawai.Nama, 1, 0).First(&reviewer).Error; err == nil {
+			found = true
+		}
+	}
+
+	if !found {
+		return utils.UnauthorizedResponse(c, "Anda bukan reviewer aktif. Pastikan email Anda sudah terdaftar sebagai reviewer.")
+	}
+
+	// Generate JWT token with pegawai/reviewer data
+	// id_user_level = 4 (reviewer)
 	token, err := utils.GenerateTokenWithClaims(
-		0, // ID = 0 karena bukan dari DB lokal
+		uint(reviewer.ID), // Use reviewer ID from db_reviewer
 		pegawai.NIP,
-		pegawai.Email,
+		reviewer.EmailUmm,
 		"pegawai",
+		4, // Reviewer level
 		map[string]string{
-			"nama":    pegawai.Nama,
-			"jabatan": pegawai.Jabatan,
-			"unit":    pegawai.Unit,
+			"nama":        reviewer.NamaReviewer,
+			"jabatan":     pegawai.Jabatan,
+			"unit":        pegawai.Unit,
+			"id_pegawai":  strconv.Itoa(reviewer.IDPegawai),
+			"id_reviewer": strconv.Itoa(reviewer.ID),
 		},
 	)
 	if err != nil {
@@ -232,12 +270,20 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 	// Parse JWT expired hours
 	expiredHours, _ := strconv.Atoi("24")
 
-	// Prepare response
+	// Prepare response with reviewer info
 	loginResponse := response.LoginResponse{
 		Token:     token,
 		UserType:  "pegawai",
 		ExpiresIn: expiredHours,
-		User:      pegawai,
+		User: fiber.Map{
+			"id_reviewer": reviewer.ID,
+			"id_pegawai":  reviewer.IDPegawai,
+			"nip":         pegawai.NIP,
+			"nama":        reviewer.NamaReviewer,
+			"email":       reviewer.EmailUmm,
+			"jabatan":     pegawai.Jabatan,
+			"unit":        pegawai.Unit,
+		},
 	}
 
 	return utils.SuccessResponse(c, "Login successful", loginResponse)
@@ -248,13 +294,13 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 func hashMySQLPassword(password string) string {
 	// First SHA1
 	firstHash := sha1.Sum([]byte(password))
-	
+
 	// Second SHA1
 	secondHash := sha1.Sum(firstHash[:])
-	
+
 	// Convert to uppercase hex with * prefix
 	result := "*" + strings.ToUpper(hex.EncodeToString(secondHash[:]))
-	
+
 	return result
 }
 

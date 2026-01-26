@@ -43,6 +43,7 @@ func JWTAuth() fiber.Handler {
 		c.Locals("username", claims.Username)
 		c.Locals("email", claims.Email)
 		c.Locals("user_type", claims.UserType)
+		c.Locals("id_user_level", claims.IDUserLevel)
 		c.Locals("user_data", claims.UserData)
 		c.Locals("claims", claims)
 

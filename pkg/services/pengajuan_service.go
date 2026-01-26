@@ -267,9 +267,9 @@ func (s *PengajuanService) GetPengajuanDetail(idPengajuan int) (*response.Pengaj
 
 	// 6. Get reviewers from local db_reviewer (with gelar stored)
 	var reviewerJudul, reviewerProposal *external.Pegawai
-	if pengajuan.IDPegawaiReviewerJudul != nil {
+	if pengajuan.IDReviewerJudul != nil {
 		var reviewerLocal models.Reviewer
-		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerJudul, 0).First(&reviewerLocal).Error; err == nil {
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDReviewerJudul, 0).First(&reviewerLocal).Error; err == nil {
 			// Create minimal pegawai struct for mapper compatibility
 			reviewerJudul = &external.Pegawai{
 				ID:          reviewerLocal.IDPegawai,
@@ -278,9 +278,9 @@ func (s *PengajuanService) GetPengajuanDetail(idPengajuan int) (*response.Pengaj
 			}
 		}
 	}
-	if pengajuan.IDPegawaiReviewerProposal != nil {
+	if pengajuan.IDReviewerProposal != nil {
 		var reviewerLocal models.Reviewer
-		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerProposal, 0).First(&reviewerLocal).Error; err == nil {
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDReviewerProposal, 0).First(&reviewerLocal).Error; err == nil {
 			// Create minimal pegawai struct for mapper compatibility
 			reviewerProposal = &external.Pegawai{
 				ID:          reviewerLocal.IDPegawai,
@@ -365,8 +365,8 @@ func (s *PengajuanService) GetMySubmissions(nimKetua string, statusFilter string
 
 		// Get reviewer proposal (if assigned)
 		var reviewerProposal *external.Pegawai
-		if pengajuan.IDPegawaiReviewerProposal != nil {
-			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		if pengajuan.IDReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDReviewerProposal)
 		}
 
 		// Map to list response
@@ -536,7 +536,7 @@ func (s *PengajuanService) UploadProposal(idPengajuan int, file *multipart.FileH
 	// 5. Update pengajuan (store just filename, frontend constructs full URL)
 	// If reviewer already assigned (re-upload after revision), set to ON_REVIEW, else PENDING
 	newStatus := "PENDING"
-	if pengajuan.IDPegawaiReviewerProposal != nil {
+	if pengajuan.IDReviewerProposal != nil {
 		newStatus = "ON_REVIEW" // Keep reviewer assigned
 	}
 
@@ -679,15 +679,15 @@ func (s *PengajuanService) GetAllPengajuan(filters map[string]interface{}) ([]re
 
 		// Get reviewer proposal (if assigned) - from SIMPEG
 		var reviewerProposal *external.Pegawai
-		if pengajuan.IDPegawaiReviewerProposal != nil {
-			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		if pengajuan.IDReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDReviewerProposal)
 		}
 
 		// Get reviewer judul nama from local db_reviewer (with gelar)
 		var reviewerJudulNama string
-		if pengajuan.IDPegawaiReviewerJudul != nil {
+		if pengajuan.IDReviewerJudul != nil {
 			var reviewer models.Reviewer
-			if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerJudul, 0).First(&reviewer).Error; err == nil {
+			if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDReviewerJudul, 0).First(&reviewer).Error; err == nil {
 				reviewerJudulNama = reviewer.NamaReviewer // Already has gelar from ActivateReviewer
 			}
 		}
@@ -745,9 +745,9 @@ func (s *PengajuanService) AssignReviewerJudul(idPengajuan int, idReviewer int, 
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
 	updates := map[string]interface{}{
-		"id_pegawai_reviewer_judul": idPegawai,
-		"status_judul":              "ON_REVIEW",
-		"user_update":               userUpdateStr,
+		"id_reviewer_judul": idPegawai,
+		"status_judul":      "ON_REVIEW",
+		"user_update":       userUpdateStr,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -778,7 +778,7 @@ func (s *PengajuanService) CancelPlottingJudul(idPengajuan int, userID int) (*re
 	}
 
 	// 2. Check if reviewer is assigned
-	if pengajuan.IDPegawaiReviewerJudul == nil {
+	if pengajuan.IDReviewerJudul == nil {
 		return nil, errors.New("tidak ada reviewer yang di-assign untuk judul ini")
 	}
 
@@ -791,9 +791,9 @@ func (s *PengajuanService) CancelPlottingJudul(idPengajuan int, userID int) (*re
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
 	updates := map[string]interface{}{
-		"id_pegawai_reviewer_judul": nil,
-		"status_judul":              "PENDING",
-		"user_update":               userUpdateStr,
+		"id_reviewer_judul": nil,
+		"status_judul":      "PENDING",
+		"user_update":       userUpdateStr,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -816,7 +816,7 @@ func (s *PengajuanService) CancelPlottingProposal(idPengajuan int, userID int) (
 	}
 
 	// 2. Check if reviewer is assigned
-	if pengajuan.IDPegawaiReviewerProposal == nil {
+	if pengajuan.IDReviewerProposal == nil {
 		return nil, errors.New("tidak ada reviewer yang di-assign untuk proposal ini")
 	}
 
@@ -829,9 +829,9 @@ func (s *PengajuanService) CancelPlottingProposal(idPengajuan int, userID int) (
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
 	updates := map[string]interface{}{
-		"id_pegawai_reviewer_proposal": nil,
-		"status_proposal":              "PENDING",
-		"user_update":                  userUpdateStr,
+		"id_reviewer_proposal": nil,
+		"status_proposal":      "PENDING",
+		"user_update":          userUpdateStr,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -877,9 +877,9 @@ func (s *PengajuanService) AssignReviewerProposal(idPengajuan int, idReviewer in
 	userUpdateStr := fmt.Sprintf("%d", userID)
 
 	updates := map[string]interface{}{
-		"id_pegawai_reviewer_proposal": idPegawai,
-		"status_proposal":              "ON_REVIEW",
-		"user_update":                  userUpdateStr,
+		"id_reviewer_proposal": idPegawai,
+		"status_proposal":      "ON_REVIEW",
+		"user_update":          userUpdateStr,
 	}
 
 	if err := database.DB.Model(&pengajuan).Updates(updates).Error; err != nil {
@@ -958,11 +958,11 @@ func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]re
 
 	switch tipeFilter {
 	case "JUDUL":
-		query = query.Where("id_pegawai_reviewer_judul = ?", idPegawai)
+		query = query.Where("id_reviewer_judul = ?", idPegawai)
 	case "PROPOSAL":
-		query = query.Where("id_pegawai_reviewer_proposal = ?", idPegawai)
+		query = query.Where("id_reviewer_proposal = ?", idPegawai)
 	default: // "all"
-		query = query.Where("id_pegawai_reviewer_judul = ? OR id_pegawai_reviewer_proposal = ?", idPegawai, idPegawai)
+		query = query.Where("id_reviewer_judul = ? OR id_reviewer_proposal = ?", idPegawai, idPegawai)
 	}
 
 	if err := query.Order("tgl_insert DESC").Find(&pengajuanList).Error; err != nil {
@@ -987,8 +987,8 @@ func (s *PengajuanService) GetMyAssignments(userID int, tipeFilter string) ([]re
 
 		// Get reviewer proposal (if assigned)
 		var reviewerProposal *external.Pegawai
-		if pengajuan.IDPegawaiReviewerProposal != nil {
-			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDPegawaiReviewerProposal)
+		if pengajuan.IDReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDReviewerProposal)
 		}
 
 		// Map to list response
@@ -1024,7 +1024,7 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 
 	// 2. Verify reviewer is assigned OR user is admin
 	idPegawai := userID // Assume userID maps to pegawai.id
-	isAssignedReviewer := pengajuan.IDPegawaiReviewerJudul != nil && *pengajuan.IDPegawaiReviewerJudul == idPegawai
+	isAssignedReviewer := pengajuan.IDReviewerJudul != nil && *pengajuan.IDReviewerJudul == idPegawai
 
 	if !isAssignedReviewer && !isAdmin {
 		return nil, errors.New("anda tidak memiliki akses untuk mereview pengajuan ini")
@@ -1052,8 +1052,8 @@ func (s *PengajuanService) ReviewJudul(idPengajuan int, req *request.ReviewJudul
 	// 6. Get reviewer's id_reviewer from db_reviewer
 	var reviewer models.Reviewer
 	var idReviewer int
-	if pengajuan.IDPegawaiReviewerJudul != nil {
-		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerJudul, 0).First(&reviewer).Error; err == nil {
+	if pengajuan.IDReviewerJudul != nil {
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDReviewerJudul, 0).First(&reviewer).Error; err == nil {
 			idReviewer = reviewer.ID
 		}
 	}
@@ -1119,7 +1119,7 @@ func (s *PengajuanService) CancelReviewJudul(idPengajuan int, userID int, isAdmi
 
 	// 2. Verify reviewer is assigned OR user is admin
 	idPegawai := userID
-	isAssignedReviewer := pengajuan.IDPegawaiReviewerJudul != nil && *pengajuan.IDPegawaiReviewerJudul == idPegawai
+	isAssignedReviewer := pengajuan.IDReviewerJudul != nil && *pengajuan.IDReviewerJudul == idPegawai
 
 	if !isAssignedReviewer && !isAdmin {
 		return nil, errors.New("anda tidak memiliki akses untuk membatalkan review pengajuan ini")
@@ -1184,7 +1184,7 @@ func (s *PengajuanService) CancelReviewProposal(idPengajuan int, userID int, isA
 
 	// 2. Verify reviewer is assigned OR user is admin
 	idPegawai := userID
-	isAssignedReviewer := pengajuan.IDPegawaiReviewerProposal != nil && *pengajuan.IDPegawaiReviewerProposal == idPegawai
+	isAssignedReviewer := pengajuan.IDReviewerProposal != nil && *pengajuan.IDReviewerProposal == idPegawai
 
 	if !isAssignedReviewer && !isAdmin {
 		return nil, errors.New("anda tidak memiliki akses untuk membatalkan review proposal ini")
@@ -1253,7 +1253,7 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 
 	// 2. Verify reviewer is assigned OR user is admin
 	idPegawai := userID // Assume userID maps to pegawai.id
-	isAssignedReviewer := pengajuan.IDPegawaiReviewerProposal != nil && *pengajuan.IDPegawaiReviewerProposal == idPegawai
+	isAssignedReviewer := pengajuan.IDReviewerProposal != nil && *pengajuan.IDReviewerProposal == idPegawai
 
 	if !isAssignedReviewer && !isAdmin {
 		return nil, errors.New("anda tidak memiliki akses untuk mereview pengajuan ini")
@@ -1281,8 +1281,8 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 	// 6. Get reviewer's id_reviewer from db_reviewer
 	var reviewer models.Reviewer
 	var idReviewer int
-	if pengajuan.IDPegawaiReviewerProposal != nil {
-		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDPegawaiReviewerProposal, 0).First(&reviewer).Error; err == nil {
+	if pengajuan.IDReviewerProposal != nil {
+		if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDReviewerProposal, 0).First(&reviewer).Error; err == nil {
 			idReviewer = reviewer.ID
 		}
 	}
@@ -1329,6 +1329,98 @@ func (s *PengajuanService) ReviewProposal(idPengajuan int, req *request.ReviewPr
 
 	// 10. Return updated detail
 	return s.GetPengajuanDetail(idPengajuan)
+}
+
+// ========================================
+// PUBLIC - ANNOUNCEMENTS
+// ========================================
+
+// GetAnnouncements gets all pengajuan with status ACC/TOLAK
+func (s *PengajuanService) GetAnnouncements(filters map[string]interface{}) ([]response.PengajuanListResponse, *response.PaginationResponse, error) {
+	// 1. Parse filters
+	page := filters["page"].(int)
+	perPage := filters["per_page"].(int)
+	idKategori := filters["id_kategori"].(int)
+	tahun := filters["tahun"].(int)
+	statusProposal := filters["status_proposal"].(string)
+
+	// 2. Build query
+	query := database.DB.Where("hapus = ?", 0).
+		Where("status_proposal IN ?", []string{"ACC", "TOLAK"})
+
+	// Apply filters
+	if idKategori > 0 {
+		query = query.Where("id_kategori = ?", idKategori)
+	}
+	if tahun > 0 {
+		query = query.Where("tahun = ?", tahun)
+	}
+	if statusProposal != "" {
+		query = query.Where("status_proposal = ?", statusProposal)
+	}
+
+	// 3. Count total records
+	var totalRecords int64
+	query.Model(&models.Pengajuan{}).Count(&totalRecords)
+
+	// 4. Apply pagination
+	offset := (page - 1) * perPage
+	query = query.Limit(perPage).Offset(offset).Order("tgl_insert DESC")
+
+	// 5. Get pengajuan list
+	var pengajuanList []models.Pengajuan
+	if err := query.Find(&pengajuanList).Error; err != nil {
+		return nil, nil, err
+	}
+
+	// 6. Build response list
+	result := make([]response.PengajuanListResponse, 0)
+	for _, pengajuan := range pengajuanList {
+		// Get kategori
+		var kategori models.KategoriPKM
+		database.DB.Where("id = ?", pengajuan.IDKategori).First(&kategori)
+
+		// Get mahasiswa ketua
+		ketua, _ := s.externalService.GetMahasiswaByNIM(pengajuan.NIMKetua)
+
+		// Count anggota
+		var anggotaCount int64
+		database.DB.Model(&models.PengajuanAnggota{}).
+			Where("id_pengajuan = ? AND hapus = ?", pengajuan.ID, 0).
+			Count(&anggotaCount)
+
+		// Get reviewer proposal (if assigned) - from SIMPEG
+		var reviewerProposal *external.Pegawai
+		if pengajuan.IDReviewerProposal != nil {
+			reviewerProposal, _ = s.externalService.GetPegawaiByID(*pengajuan.IDReviewerProposal)
+		}
+
+		// Get reviewer judul nama from local db_reviewer (with gelar)
+		var reviewerJudulNama string
+		if pengajuan.IDReviewerJudul != nil {
+			var reviewer models.Reviewer
+			if err := database.DB.Where("id_pegawai = ? AND hapus = ?", *pengajuan.IDReviewerJudul, 0).First(&reviewer).Error; err == nil {
+				reviewerJudulNama = reviewer.NamaReviewer // Already has gelar from ActivateReviewer
+			}
+		}
+
+		// Map to list response
+		listResp := s.mapper.MapPengajuanToListResponse(
+			&pengajuan,
+			ketua,
+			&kategori,
+			int(anggotaCount),
+			reviewerProposal,
+			reviewerJudulNama,
+		)
+
+		result = append(result, *listResp)
+	}
+
+	// 7. Build pagination response
+	paginationResp := response.NewPaginationResponse(page, perPage, totalRecords)
+
+	return result, paginationResp, nil
 }
 
 // ========================================

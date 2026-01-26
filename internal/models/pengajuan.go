@@ -20,17 +20,17 @@ type Pengajuan struct {
 	Tahun           int        `gorm:"column:tahun;type:int" json:"tahun"`
 
 	// Status Judul
-	StatusJudul            string     `gorm:"column:status_judul;type:varchar(20);default:PENDING" json:"status_judul"` // PENDING, ON_REVIEW, ACC, REVISI, TOLAK
-	IDPegawaiReviewerJudul *int       `gorm:"column:id_pegawai_reviewer_judul;type:int" json:"id_pegawai_reviewer_judul"`
-	CatatanReviewJudul     string     `gorm:"column:catatan_review_judul;type:text" json:"catatan_review_judul"`
-	TglReviewJudul         *time.Time `gorm:"column:tgl_review_judul;type:datetime" json:"tgl_review_judul"`
+	StatusJudul        string     `gorm:"column:status_judul;type:varchar(20);default:PENDING" json:"status_judul"` // PENDING, ON_REVIEW, ACC, REVISI, TOLAK
+	IDReviewerJudul    *int       `gorm:"column:id_reviewer_judul;type:int" json:"id_reviewer_judul"`               // FK to db_reviewer.id
+	CatatanReviewJudul string     `gorm:"column:catatan_review_judul;type:text" json:"catatan_review_judul"`
+	TglReviewJudul     *time.Time `gorm:"column:tgl_review_judul;type:datetime" json:"tgl_review_judul"`
 
 	// Status Proposal
-	FileProposal              string     `gorm:"column:file_proposal;type:text" json:"file_proposal"`
-	StatusProposal            string     `gorm:"column:status_proposal;type:varchar(20)" json:"status_proposal"` // PENDING, ON_REVIEW, ACC, REVISI, TOLAK
-	IDPegawaiReviewerProposal *int       `gorm:"column:id_pegawai_reviewer_proposal;type:int" json:"id_pegawai_reviewer_proposal"`
-	CatatanReviewProposal     string     `gorm:"column:catatan_review_proposal;type:text" json:"catatan_review_proposal"`
-	TglReviewProposal         *time.Time `gorm:"column:tgl_review_proposal;type:datetime" json:"tgl_review_proposal"`
+	FileProposal          string     `gorm:"column:file_proposal;type:text" json:"file_proposal"`
+	StatusProposal        string     `gorm:"column:status_proposal;type:varchar(20)" json:"status_proposal"`   // PENDING, ON_REVIEW, ACC, REVISI, TOLAK
+	IDReviewerProposal    *int       `gorm:"column:id_reviewer_proposal;type:int" json:"id_reviewer_proposal"` // FK to db_reviewer.id
+	CatatanReviewProposal string     `gorm:"column:catatan_review_proposal;type:text" json:"catatan_review_proposal"`
+	TglReviewProposal     *time.Time `gorm:"column:tgl_review_proposal;type:datetime" json:"tgl_review_proposal"`
 
 	// Final Status
 	StatusFinal string `gorm:"column:status_final;type:varchar(20);default:DRAFT" json:"status_final"` // DRAFT, SUBMITTED, LOLOS, TIDAK_LOLOS

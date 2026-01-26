@@ -377,6 +377,58 @@ func (ctrl *PengajuanController) ReviseProposal(c *fiber.Ctx) error {
 	))
 }
 
+// GetAnnouncements godoc
+// @Summary Get Review Announcements
+// @Description Get list of pengajuan with ACC/TOLAK status (Final Results)
+// @Tags Public - Pengajuan PKM
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param id_kategori query int false "Filter by kategori"
+// @Param tahun query int false "Filter by tahun"
+// @Success 200 {object} response.APIResponse{data=response.PaginatedResponse}
+// @Failure 401 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Security BearerAuth
+// @Router /pengajuan/announcements [get]
+func (ctrl *PengajuanController) GetAnnouncements(c *fiber.Ctx) error {
+	// 1. Parse query params
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	perPage, _ := strconv.Atoi(c.Query("per_page", "10"))
+	idKategori, _ := strconv.Atoi(c.Query("id_kategori", "0"))
+	tahun, _ := strconv.Atoi(c.Query("tahun", "0"))
+	statusProposal := c.Query("status_proposal", "")
+
+	// 2. Build filters
+	filters := map[string]interface{}{
+		"page":            page,
+		"per_page":        perPage,
+		"id_kategori":     idKategori,
+		"tahun":           tahun,
+		"status_proposal": statusProposal,
+	}
+
+	// 3. Call service
+	result, pagination, err := ctrl.service.GetAnnouncements(filters)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(response.ErrorResponse(
+			"Failed to get announcements",
+			err.Error(),
+		))
+	}
+
+	// 4. Return paginated response
+	return c.JSON(response.SuccessResponse(
+		"Announcements retrieved successfully",
+		response.PaginatedResponse{
+			Data:       result,
+			Pagination: pagination,
+		},
+	))
+}
+
 // ========================================
 // HELPER FUNCTIONS
 // ========================================

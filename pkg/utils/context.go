@@ -74,3 +74,21 @@ func IsMahasiswa(c *fiber.Ctx) bool {
 func IsReviewer(c *fiber.Ctx) bool {
 	return GetCurrentUserType(c) == "pegawai"
 }
+
+// GetCurrentUserLevel mengambil id_user_level dari context
+// Returns: 1=superadmin, 2=admin, 3=mahasiswa, 4=reviewer, 0=not found
+func GetCurrentUserLevel(c *fiber.Ctx) int {
+	level := c.Locals("id_user_level")
+	if level == nil {
+		return 0
+	}
+
+	switch v := level.(type) {
+	case int:
+		return v
+	case float64:
+		return int(v)
+	default:
+		return 0
+	}
+}

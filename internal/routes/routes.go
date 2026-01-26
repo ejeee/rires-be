@@ -167,9 +167,10 @@ func Setup(app *fiber.App) {
 	menuController := controllers.NewMenuController()
 	menusPublic := protected.Group("/menus")
 	{
-		menusPublic.Get("/", menuController.GetList)     // All users can read
-		menusPublic.Get("/tree", menuController.GetTree) // All users can read
-		menusPublic.Get("/:id", menuController.GetByID)  // All users can read
+		menusPublic.Get("/", menuController.GetList)              // All users can read
+		menusPublic.Get("/tree", menuController.GetTree)          // All users can read (all menus)
+		menusPublic.Get("/my-tree", menuController.GetMyMenuTree) // Filtered by user level
+		menusPublic.Get("/:id", menuController.GetByID)           // All users can read
 	}
 	menusAdmin := protected.Group("/menus", middleware.RequireAdmin())
 	{
@@ -252,6 +253,10 @@ func Setup(app *fiber.App) {
 
 	// pengajuan pkm - mahasiswa endpoints
 	PengajuanController := controllers.NewPengajuanController()
+
+	// Announcements (accessible to all authenticated users)
+	protected.Get("/pengajuan/announcements", PengajuanController.GetAnnouncements)
+
 	pengajuanMhs := protected.Group("/pengajuan", middleware.RequireMahasiswa())
 	{
 		// Judul PKM
@@ -269,25 +274,25 @@ func Setup(app *fiber.App) {
 
 	// pengajuan pkm - admin endpoints
 	pengajuanAdminController := controllers.NewPengajuanAdminController()
-	pengajuanAdmin := protected.Group("/admin/pengajuan", middleware.RequireAdmin())
+	pengajuanAdmin := protected.Group("/admin/pengajuan")
 	{
-		// List & Detail
-		pengajuanAdmin.Get("/", pengajuanAdminController.GetAllPengajuan)
-		pengajuanAdmin.Get("/:id", pengajuanAdminController.GetPengajuanDetail)
+		// List & Detail - Accessible by Admin and Reviewer
+		pengajuanAdmin.Get("/", middleware.RequireAdminOrReviewer(), pengajuanAdminController.GetAllPengajuan)
+		pengajuanAdmin.Get("/:id", middleware.RequireAdminOrReviewer(), pengajuanAdminController.GetPengajuanDetail)
 
-		// Assign Reviewer
-		pengajuanAdmin.Post("/:id/assign-reviewer-judul", pengajuanAdminController.AssignReviewerJudul)
-		pengajuanAdmin.Post("/:id/assign-reviewer-proposal", pengajuanAdminController.AssignReviewerProposal)
+		// Assign Reviewer - Strictly Admin only
+		pengajuanAdmin.Post("/:id/assign-reviewer-judul", middleware.RequireAdmin(), pengajuanAdminController.AssignReviewerJudul)
+		pengajuanAdmin.Post("/:id/assign-reviewer-proposal", middleware.RequireAdmin(), pengajuanAdminController.AssignReviewerProposal)
 
-		// Cancel Plotting
-		pengajuanAdmin.Post("/:id/cancel-plotting-judul", pengajuanAdminController.CancelPlottingJudul)
-		pengajuanAdmin.Post("/:id/cancel-plotting-proposal", pengajuanAdminController.CancelPlottingProposal)
+		// Cancel Plotting - Strictly Admin only
+		pengajuanAdmin.Post("/:id/cancel-plotting-judul", middleware.RequireAdmin(), pengajuanAdminController.CancelPlottingJudul)
+		pengajuanAdmin.Post("/:id/cancel-plotting-proposal", middleware.RequireAdmin(), pengajuanAdminController.CancelPlottingProposal)
 
-		// Upload Proposal (admin can upload on behalf of mahasiswa)
-		pengajuanAdmin.Post("/:id/proposal", pengajuanAdminController.UploadProposal)
+		// Upload Proposal (admin can upload on behalf of mahasiswa) - Strictly Admin only
+		pengajuanAdmin.Post("/:id/proposal", middleware.RequireAdmin(), pengajuanAdminController.UploadProposal)
 
-		// Announce Final Result
-		pengajuanAdmin.Post("/:id/announce", pengajuanAdminController.AnnounceFinalResult)
+		// Announce Final Result - Strictly Admin only
+		pengajuanAdmin.Post("/:id/announce", middleware.RequireAdmin(), pengajuanAdminController.AnnounceFinalResult)
 	}
 
 	// reviewer management - admin endpoints

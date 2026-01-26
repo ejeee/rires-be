@@ -11,11 +11,12 @@ import (
 
 // JWTClaims adalah struktur claims untuk JWT
 type JWTClaims struct {
-	UserID   uint              `json:"id_user"`
-	Email    string            `json:"email"`
-	Username string            `json:"username"`
-	UserType string            `json:"user_type"` // admin, mahasiswa, pegawai
-	UserData map[string]string `json:"user_data"` // Additional user data
+	UserID      uint              `json:"id_user"`
+	Email       string            `json:"email"`
+	Username    string            `json:"username"`
+	UserType    string            `json:"user_type"`     // admin, mahasiswa, pegawai
+	IDUserLevel int               `json:"id_user_level"` // 1=superadmin, 2=admin, 3=mahasiswa, 4=reviewer
+	UserData    map[string]string `json:"user_data"`     // Additional user data
 	jwt.RegisteredClaims
 }
 
@@ -51,7 +52,7 @@ func GenerateToken(userID uint, email string) (string, error) {
 }
 
 // GenerateTokenWithClaims membuat JWT token dengan custom claims
-func GenerateTokenWithClaims(userID uint, username, email, userType string, userData map[string]string) (string, error) {
+func GenerateTokenWithClaims(userID uint, username, email, userType string, idUserLevel int, userData map[string]string) (string, error) {
 	// Parse JWT expired hours dari config
 	expiredHours, err := strconv.Atoi(config.AppConfig.JWTExpiredHours)
 	if err != nil {
@@ -60,11 +61,12 @@ func GenerateTokenWithClaims(userID uint, username, email, userType string, user
 
 	// Buat claims
 	claims := JWTClaims{
-		UserID:   userID,
-		Email:    email,
-		Username: username,
-		UserType: userType,
-		UserData: userData,
+		UserID:      userID,
+		Email:       email,
+		Username:    username,
+		UserType:    userType,
+		IDUserLevel: idUserLevel,
+		UserData:    userData,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expiredHours) * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
