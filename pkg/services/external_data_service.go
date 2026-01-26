@@ -145,10 +145,20 @@ func (s *ExternalDataService) GetAllReviewers() ([]external.Pegawai, error) {
 	}
 
 	var pegawaiList []external.Pegawai
-	// Filter only pegawai with email_umm (not empty or null)
-	if err := database.DBSimpeg.Where("hapus = 1 AND email_umm IS NOT NULL AND email_umm != ''").
-		Order("nama_pegawai ASC").
-		Find(&pegawaiList).Error; err != nil {
+	// Filter based on user's exact SQL:
+	// select p.* from ref_aktivasi ra
+	// inner join pegawai p on p.id_ref_aktivasi = ra.KDKODTBKOD
+	// where ra.hapus = 1 and ra.status_peg = 0 and p.hapus = 1 and p.email_umm != ''
+	err := database.DBSimpeg.Table("pegawai").
+		Joins("JOIN ref_aktivasi ra ON pegawai.id_ref_aktivasi = ra.KDKODTBKOD").
+		Where("ra.status_peg = ?", 0).
+		Where("ra.hapus = ?", 1).
+		Where("pegawai.hapus = ?", 1).
+		Where("pegawai.email_umm IS NOT NULL AND pegawai.email_umm != ''").
+		Order("pegawai.nama_pegawai ASC").
+		Find(&pegawaiList).Error
+
+	if err != nil {
 		return nil, err
 	}
 
