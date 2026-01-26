@@ -405,9 +405,9 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 		return nil, errors.New("hanya ketua yang dapat merevisi judul")
 	}
 
-	// 3. Check if can revise (status must be REVISI)
+	// 3. Check if can update (status must be REVISI or PENDING)
 	if !pengajuan.CanReviseJudul() {
-		return nil, errors.New("judul hanya dapat direvisi jika status = REVISI")
+		return nil, errors.New("pengajuan hanya dapat diupdate jika status = PENDING atau REVISI")
 	}
 
 	// 4. START TRANSACTION
@@ -428,46 +428,85 @@ func (s *PengajuanService) UpdateJudul(idPengajuan int, req *request.UpdateJudul
 		parameterDataJSON = string(paramDataBytes)
 	}
 
-	// 6. Update judul and biodata
+	// 6. Update based on status
 	updates := map[string]interface{}{
-		"judul":        req.Judul,
-		"status_judul": "ON_REVIEW", // Back to ON_REVIEW, NOT PENDING (keep reviewer assignment)
-		"user_update":  nimKetua,
+		"user_update": nimKetua,
 	}
 
-	// Update biodata if provided
-	if req.NamaKetua != "" {
-		updates["nama_ketua"] = req.NamaKetua
+	// Mode: REVISI - Only Update Judul and Parameters
+	if pengajuan.CanEditJudulData() {
+		updates["judul"] = req.Judul
+		updates["status_judul"] = "ON_REVIEW" // Back to ON_REVIEW, keep reviewer assignment
+		if req.IDKategori != 0 {
+			updates["id_kategori"] = req.IDKategori
+		}
+		if parameterDataJSON != "" {
+			updates["parameter_data"] = parameterDataJSON
+		}
+
+		// Update Dosen Pembimbing as it's part of pengajuan data (not strictly ketua biodata)
+		if req.DosenPembimbing != "" {
+			updates["dosen_pembimbing"] = req.DosenPembimbing
+		}
 	}
-	if req.EmailKetua != "" {
-		updates["email_ketua"] = req.EmailKetua
-	}
-	if req.NoHPKetua != "" {
-		updates["no_hp_ketua"] = req.NoHPKetua
-	}
-	if req.ProgramStudi != "" {
-		updates["program_studi"] = req.ProgramStudi
-	}
-	if req.Fakultas != "" {
-		updates["fakultas"] = req.Fakultas
-	}
-	if req.DosenPembimbing != "" {
-		updates["dosen_pembimbing"] = req.DosenPembimbing
-	}
-	if req.IDKategori != 0 {
-		updates["id_kategori"] = req.IDKategori
-	}
-	if parameterDataJSON != "" {
-		updates["parameter_data"] = parameterDataJSON
-	}
+
+	// Note: NamaKetua, EmailKetua, etc. are currently locked (Data Ketua: Read-Only)
 
 	if err := tx.Model(&pengajuan).Updates(updates).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	// 7. Update anggota if provided
-	if len(req.Anggota) > 0 {
+	// 7. Update anggota if provided and status is PENDING
+	if len(req.Anggota) > 0 && pengajuan.CanEditMembers() {
+		// --- Ensure Ketua logic (copied from CreateJudulPKM) ---
+		// Use pengajuan.NIMKetua as the source of truth for who the ketua is
+		ownerNIM := pengajuan.NIMKetua
+		ketuaFound := false
+		for i, anggota := range req.Anggota {
+			if anggota.NIM == ownerNIM {
+				req.Anggota[i].IsKetua = 1
+				req.Anggota[i].Urutan = 1
+				ketuaFound = true
+			} else if anggota.IsKetua == 1 {
+				req.Anggota[i].IsKetua = 0 // Don't allow other members to be ketua
+			}
+		}
+
+		if !ketuaFound {
+			ketuaAnggota := request.AnggotaRequest{
+				NIM:     ownerNIM,
+				Nama:    pengajuan.NamaKetua,
+				IsKetua: 1,
+				Urutan:  1,
+			}
+			req.Anggota = append([]request.AnggotaRequest{ketuaAnggota}, req.Anggota...)
+		}
+
+		// Fix urutan (ketua = 1, others = 2, 3...)
+		urutanCounter := 2
+		for i := range req.Anggota {
+			if req.Anggota[i].IsKetua != 1 {
+				req.Anggota[i].Urutan = urutanCounter
+				urutanCounter++
+			}
+		}
+		// --- End Ensure Ketua logic ---
+
+		// Validate new team structure
+		if err := s.validator.ValidateTeamSize(s.convertToAnggotaModels(req.Anggota)); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		if err := s.validator.ValidateTeamStructure(s.convertToAnggotaModels(req.Anggota)); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		if err := s.validator.ValidateNoDuplicateNIM(s.convertToAnggotaModels(req.Anggota)); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
 		// Delete old anggota
 		if err := tx.Where("id_pengajuan = ?", pengajuan.ID).Delete(&models.PengajuanAnggota{}).Error; err != nil {
 			tx.Rollback()

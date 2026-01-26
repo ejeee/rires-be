@@ -59,8 +59,18 @@ func (p *Pengajuan) CanUploadProposal() bool {
 	return p.StatusJudul == "ACC"
 }
 
-// CanReviseJudul checks if mahasiswa can revise judul (status_judul must be REVISI)
+// CanReviseJudul checks if mahasiswa can revise/update judul data (broadened for conditional editing)
 func (p *Pengajuan) CanReviseJudul() bool {
+	return p.StatusJudul == "REVISI" || p.StatusJudul == "PENDING"
+}
+
+// CanEditMembers checks if team members can be edited (only in PENDING status)
+func (p *Pengajuan) CanEditMembers() bool {
+	return p.StatusJudul == "PENDING"
+}
+
+// CanEditJudulData checks if title and parameters can be edited (only in REVISI status)
+func (p *Pengajuan) CanEditJudulData() bool {
 	return p.StatusJudul == "REVISI"
 }
 
