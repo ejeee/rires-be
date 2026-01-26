@@ -1,66 +1,76 @@
 # RIRES Backend API
 
-REST API untuk sistem **Program Kreativitas Mahasiswa (PKM)** Universitas Muhammadiyah Malang menggunakan **Go 1.23**, **Fiber v2**, **GORM**, dan **MySQL**.
+REST API untuk sistem **Program Kreativitas Mahasiswa (PKM)** Universitas Muhammadiyah Malang. Backend ini dibangun menggunakan **Go 1.23**, **Fiber v2**, dan **GORM**.
 
 ## 🚀 Tech Stack
 
-- **Go 1.23+** - Programming language
-- **Fiber v2** - Web framework (Express-like)
-- **GORM** - ORM untuk MySQL
-- **JWT** - Authentication & Authorization
-- **MySQL** - Main database + External databases (NEOMAA, NEOMAAREF, SIMPEG)
-- **Go Validator** - Request validation
+- **Go 1.23+** - Main programming language.
+- **Fiber v2** - Fast and minimal web framework.
+- **GORM** - ORM for database interaction.
+- **JWT** - Secure authentication and role-based access control.
+- **MySQL** - Integrated with multiple databases:
+  - `Main DB`: Core tables for PKM management.
+  - `NEOMAA`: Student data integration.
+  - `NEOMAAREF`: Reference data (Fakultas, Prodi).
+  - `SIMPEG`: Employee/Reviewer data integration.
+- **Go Validator** - Robust request validation.
 
-## 📁 Struktur Project
+## 📁 Project Structure
 
-```
+```text
 rires-be/
-├── cmd/api/                    # Entry point aplikasi
-├── config/                     # Configuration & environment
+├── cmd/
+│   └── api/                # Application entry point (main.go)
+├── config/                 # Configuration management & environment loading
+├── docs/                   # Swagger documentation & API specs
 ├── internal/
-│   ├── controllers/            # HTTP handlers
-│   ├── dto/
-│   │   ├── request/            # Request DTOs
-│   │   └── response/           # Response DTOs
-│   ├── middleware/             # JWT & role-based middleware
-│   ├── models/                 # Database models
-│   ├── routes/                 # Route definitions
-│   └── services/               # Business logic
+│   ├── controllers/        # HTTP handlers (logic for each route)
+│   ├── dto/                # Data Transfer Objects
+│   │   ├── request/        # Request body structures & validation rules
+│   │   └── response/       # Standardized API response structures
+│   ├── middleware/         # Security middlewares (JWT, Role checking)
+│   ├── models/             # GORM models for local database
+│   │   └── external/       # Models for external database integrations
+│   └── routes/             # Central route setup & group definitions
 └── pkg/
-    ├── database/               # Database connections
-    ├── services/               # External services
-    └── utils/                  # Helper functions
+    ├── database/           # Multi-database connection setup
+    ├── services/           # Business logic & external data integration
+    └── utils/              # Common helpers (JWT, Response, Strings)
 ```
 
-## ⚙️ Setup & Installation
+## 🛠️ Getting Started
 
-1. **Clone repository**
-   ```bash
-   git clone <repository-url>
-   cd rires-be
-   ```
+1.  **Clone the Repository**
+    ```bash
+    git clone <repository-url>
+    cd rires-be
+    ```
 
-2. **Install dependencies**
-   ```bash
-   go mod download
-   ```
+2.  **Install Dependencies**
+    ```bash
+    go mod download
+    ```
 
-3. **Setup environment**
-   ```bash
-   cp .env.example .env
-   ```
+3.  **Environment Configuration**
+    Copy `.env.example` to `.env` and fill in necessary database credentials.
+    ```bash
+    cp .env.example .env
+    ```
 
-4. **Run application**
-   ```bash
-   go run cmd/api/main.go
-   ```
+4.  **Run Development Server**
+    ```bash
+    go run cmd/api/main.go
+    ```
 
-## 🔌 API Endpoints (27+)
+## 🔑 Key Features
 
-See detailed documentation in the codebase or API docs.
+- **Multi-Role Authentication**: Support for Admin, Mahasiswa, and Reviewer logins.
+- **Reviewer Assignment**: Automated and manual plotting of reviewers for PKM titles and proposals.
+- **Flexible Review Flow**: Support for revision, acceptance, and rejection cycles.
+- **Database Integration**: Seamless synchronization with UMM's internal systems (SIMPEG, NEOMAA).
 
 ## 📜 License
 
-MIT License
+This project is licensed under the MIT License.
 
 ---
