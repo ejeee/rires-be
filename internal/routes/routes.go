@@ -16,7 +16,7 @@ func Setup(app *fiber.App) {
 	// Welcome route
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"app":     "RIRES Backend API",
+			"app":     "Student Rires Backend API",
 			"version": "1.0.0",
 			"status":  "running",
 		})
