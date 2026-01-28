@@ -127,6 +127,7 @@ func Setup(app *fiber.App) {
 	authController := controllers.NewAuthController()
 	auth := api.Group("/auth")
 	{
+		auth.Post("/login", authController.Login)
 		auth.Post("/login/admin", authController.LoginAdmin)
 		auth.Post("/login/mahasiswa", authController.LoginMahasiswa)
 		auth.Post("/login/pegawai", authController.LoginPegawai)

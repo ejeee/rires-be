@@ -25,6 +25,58 @@ func NewAuthController() *AuthController {
 	}
 }
 
+// Login godoc
+// @Summary Login Unified (Auto-detect Role)
+// @Description Login untuk semua tipe user (Admin, Mahasiswa, Pegawai) dengan auto-detection role
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param credentials body request.LoginRequest true "Login Credentials"
+// @Success 200 {object} response.LoginResponse
+// @Failure 401 {object} object{success=bool,message=string}
+// @Router /auth/login [post]
+func (ctrl *AuthController) Login(c *fiber.Ctx) error {
+	var req request.LoginRequest
+
+	// Parse request body
+	if err := c.BodyParser(&req); err != nil {
+		return utils.BadRequestResponse(c, "Invalid request body")
+	}
+
+	// Validate required fields
+	if req.Username == "" || req.Password == "" {
+		return utils.BadRequestResponse(c, "Username and password are required")
+	}
+
+	// 1. Try Admin (Local DB)
+	var user models.User
+	result := database.DB.Where("username = ? AND hapus = 0", req.Username).First(&user)
+	if result.Error == nil {
+		return ctrl.processAdminLogin(c, user, req.Password)
+	}
+
+	// 2. Try Mahasiswa or Pegawai via external API
+	// If it's an email format, try Pegawai first
+	if strings.Contains(req.Username, "@") {
+		return ctrl.LoginPegawai(c) // Use existing LoginPegawai for now as it handles everything
+	}
+
+	// Try Mahasiswa login (most common case for numeric usernames)
+	mahasiswa, err := ctrl.apiService.MahasiswaLogin(req.Username, req.Password)
+	if err == nil {
+		return ctrl.processMahasiswaLoginSuccess(c, mahasiswa)
+	}
+
+	// If Mahasiswa fails, try Pegawai (in case NIP is used instead of email)
+	pegawai, errPegawai := ctrl.apiService.PegawaiLogin(req.Username, req.Password)
+	if errPegawai == nil {
+		return ctrl.processPegawaiLoginSuccess(c, pegawai, req.Username)
+	}
+
+	// If all fail, return error
+	return utils.UnauthorizedResponse(c, "Invalid username or password")
+}
+
 // LoginAdmin godoc
 // @Summary Login Admin
 // @Description Login untuk administrator dari database lokal
@@ -56,39 +108,39 @@ func (ctrl *AuthController) LoginAdmin(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, "Invalid username or password")
 	}
 
+	return ctrl.processAdminLogin(c, user, req.Password)
+}
+
+// Helper for Admin Login logic
+func (ctrl *AuthController) processAdminLogin(c *fiber.Ctx, user models.User, password string) error {
 	// Check if user is active
 	if user.Status != 1 {
 		return utils.UnauthorizedResponse(c, "User account is inactive")
 	}
 
 	// Verify password
-	// Check if password is hashed with MySQL PASSWORD() function
 	if len(user.Password) > 0 && user.Password[0] == '*' {
-		// MySQL PASSWORD() hash format: *HEXSTRING
-		hashedInput := hashMySQLPassword(req.Password)
+		hashedInput := hashMySQLPassword(password)
 		if user.Password != hashedInput {
 			return utils.UnauthorizedResponse(c, "Invalid username or password")
 		}
 	} else if len(user.Password) >= 4 && (user.Password[0:4] == "$2a$" || user.Password[0:4] == "$2y$") {
-		// Bcrypt hash
-		if err := utils.VerifyPassword(user.Password, req.Password); err != nil {
+		if err := utils.VerifyPassword(user.Password, password); err != nil {
 			return utils.UnauthorizedResponse(c, "Invalid username or password")
 		}
 	} else {
-		// Plain text password
-		if user.Password != req.Password {
+		if user.Password != password {
 			return utils.UnauthorizedResponse(c, "Invalid username or password")
 		}
 	}
 
-	// Generate JWT token with user data
-	// id_user_level from db_user.level_user (1=superadmin, 2=admin)
+	// Generate JWT token
 	token, err := utils.GenerateTokenWithClaims(
 		uint(user.ID),
 		user.Username,
 		"",
 		"admin",
-		user.LevelUser, // Use level_user from db_user
+		user.LevelUser,
 		map[string]string{
 			"nama_user":  user.NamaUser,
 			"level_user": strconv.Itoa(user.LevelUser),
@@ -98,10 +150,8 @@ func (ctrl *AuthController) LoginAdmin(c *fiber.Ctx) error {
 		return utils.InternalServerErrorResponse(c, "Failed to generate token")
 	}
 
-	// Parse JWT expired hours
 	expiredHours, _ := strconv.Atoi("24")
 
-	// Prepare response
 	loginResponse := response.LoginResponse{
 		Token:     token,
 		UserType:  "admin",
@@ -148,6 +198,11 @@ func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
+	return ctrl.processMahasiswaLoginSuccess(c, mahasiswa)
+}
+
+// Helper for Mahasiswa Login success
+func (ctrl *AuthController) processMahasiswaLoginSuccess(c *fiber.Ctx, mahasiswa *response.MahasiswaLoginResponse) error {
 	// Find user_id from db_user by NIM (mahasiswa might have local account)
 	var user models.User
 	var userID uint = 0
@@ -155,10 +210,9 @@ func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 		userID = uint(user.ID)
 	}
 
-	// Generate JWT token with mahasiswa data
-	// id_user_level = 3 (mahasiswa)
+	// Generate JWT token
 	token, err := utils.GenerateTokenWithClaims(
-		userID, // Use user_id from db_user if exists, otherwise 0
+		userID,
 		mahasiswa.NIM,
 		"",
 		"mahasiswa",
@@ -173,10 +227,8 @@ func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 		return utils.InternalServerErrorResponse(c, "Failed to generate token")
 	}
 
-	// Parse JWT expired hours
 	expiredHours, _ := strconv.Atoi("24")
 
-	// Prepare response
 	loginResponse := response.LoginResponse{
 		Token:     token,
 		UserType:  "mahasiswa",
@@ -217,8 +269,12 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
+	return ctrl.processPegawaiLoginSuccess(c, pegawai, req.Username)
+}
+
+// Helper for Pegawai Login success
+func (ctrl *AuthController) processPegawaiLoginSuccess(c *fiber.Ctx, pegawai *response.PegawaiLoginResponse, originalUsername string) error {
 	// Check if pegawai is an active reviewer in db_reviewer
-	// Try multiple lookup strategies: email from API, email from input (username), nama
 	var reviewer models.Reviewer
 	found := false
 
@@ -230,8 +286,8 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 	}
 
 	// Strategy 2: lookup by username (email input) if not found
-	if !found && req.Username != "" {
-		if err := database.DB.Where("email_umm = ? AND is_active = ? AND hapus = ?", req.Username, 1, 0).First(&reviewer).Error; err == nil {
+	if !found && originalUsername != "" {
+		if err := database.DB.Where("email_umm = ? AND is_active = ? AND hapus = ?", originalUsername, 1, 0).First(&reviewer).Error; err == nil {
 			found = true
 		}
 	}
@@ -247,10 +303,9 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, "Anda bukan reviewer aktif. Pastikan email Anda sudah terdaftar sebagai reviewer.")
 	}
 
-	// Generate JWT token with pegawai/reviewer data
-	// id_user_level = 4 (reviewer)
+	// Generate JWT token
 	token, err := utils.GenerateTokenWithClaims(
-		uint(reviewer.ID), // Use reviewer ID from db_reviewer
+		uint(reviewer.ID),
 		pegawai.NIP,
 		reviewer.EmailUmm,
 		"pegawai",
@@ -267,10 +322,8 @@ func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 		return utils.InternalServerErrorResponse(c, "Failed to generate token")
 	}
 
-	// Parse JWT expired hours
 	expiredHours, _ := strconv.Atoi("24")
 
-	// Prepare response with reviewer info
 	loginResponse := response.LoginResponse{
 		Token:     token,
 		UserType:  "pegawai",
