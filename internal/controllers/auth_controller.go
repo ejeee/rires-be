@@ -58,7 +58,12 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 	// 2. Try Mahasiswa or Pegawai via external API
 	// If it's an email format, try Pegawai first
 	if strings.Contains(req.Username, "@") {
-		return ctrl.LoginPegawai(c) // Use existing LoginPegawai for now as it handles everything
+		// Call external API for pegawai
+		pegawai, err := ctrl.apiService.PegawaiLogin(req.Username, req.Password)
+		if err != nil {
+			return utils.UnauthorizedResponse(c, err.Error())
+		}
+		return ctrl.processPegawaiLoginSuccess(c, pegawai, req.Username)
 	}
 
 	// Try Mahasiswa login (most common case for numeric usernames)
@@ -77,17 +82,7 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 	return utils.UnauthorizedResponse(c, "Invalid username or password")
 }
 
-// LoginAdmin godoc
-// @Summary Login Admin
-// @Description Login untuk administrator dari database lokal
-// @Tags Authentication
-// @Accept json
-// @Produce json
-// @Param credentials body object{username=string,password=string} true "Login Credentials"
-// @Success 200 {object} object{success=bool,message=string,data=object{token=string,user_type=string,expires_in=int,user=object}}
-// @Failure 400 {object} object{success=bool,message=string}
-// @Failure 401 {object} object{success=bool,message=string}
-// @Router /auth/login/admin [post]
+// LoginAdmin handles admin login
 func (ctrl *AuthController) LoginAdmin(c *fiber.Ctx) error {
 	var req request.LoginRequest
 
@@ -168,17 +163,7 @@ func (ctrl *AuthController) processAdminLogin(c *fiber.Ctx, user models.User, pa
 	return utils.SuccessResponse(c, "Login successful", loginResponse)
 }
 
-// LoginMahasiswa godoc
-// @Summary Login Mahasiswa
-// @Description Login mahasiswa menggunakan NIM via API external
-// @Tags Authentication
-// @Accept json
-// @Produce json
-// @Param credentials body object{username=string,password=string} true "NIM and Password"
-// @Success 200 {object} object{success=bool,message=string,data=object{token=string,user_type=string,expires_in=int,user=object}}
-// @Failure 400 {object} object{success=bool,message=string}
-// @Failure 401 {object} object{success=bool,message=string}
-// @Router /auth/login/mahasiswa [post]
+// LoginMahasiswa handles mahasiswa login
 func (ctrl *AuthController) LoginMahasiswa(c *fiber.Ctx) error {
 	var req request.LoginRequest
 
@@ -239,17 +224,7 @@ func (ctrl *AuthController) processMahasiswaLoginSuccess(c *fiber.Ctx, mahasiswa
 	return utils.SuccessResponse(c, "Login successful", loginResponse)
 }
 
-// LoginPegawai godoc
-// @Summary Login Pegawai
-// @Description Login pegawai/reviewer menggunakan email via API external
-// @Tags Authentication
-// @Accept json
-// @Produce json
-// @Param credentials body object{username=string,password=string} true "Email and Password"
-// @Success 200 {object} object{success=bool,message=string,data=object{token=string,user_type=string,expires_in=int,user=object}}
-// @Failure 400 {object} object{success=bool,message=string}
-// @Failure 401 {object} object{success=bool,message=string}
-// @Router /auth/login/pegawai [post]
+// LoginPegawai handles pegawai login
 func (ctrl *AuthController) LoginPegawai(c *fiber.Ctx) error {
 	var req request.LoginRequest
 
