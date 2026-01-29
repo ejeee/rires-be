@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"strings"
+
 	"rires-be/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,6 +11,18 @@ import (
 // JWTAuth adalah middleware untuk validasi JWT token
 func JWTAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		path := c.Path()
+
+		// ==================================
+		// BYPASS PUBLIC ROUTES
+		// ==================================
+		if strings.HasPrefix(path, "/api/v1/auth/login") ||
+			strings.HasPrefix(path, "/swagger") ||
+			path == "/" ||
+			path == "/health" {
+			return c.Next()
+		}
+
 		// Get Authorization header
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
@@ -18,16 +32,15 @@ func JWTAuth() fiber.Handler {
 			})
 		}
 
-		// Check if it starts with "Bearer "
-		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		// Check Bearer format
+		if !strings.HasPrefix(authHeader, "Bearer ") {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"success": false,
 				"message": "Invalid authorization header format. Use: Bearer <token>",
 			})
 		}
 
-		// Extract token
-		tokenString := authHeader[7:]
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Validate token
 		claims, err := utils.ValidateToken(tokenString)
