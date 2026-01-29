@@ -55,10 +55,10 @@ func (s *APIService) MahasiswaLogin(username, password string) (*response.Mahasi
 
 	// Parse response - handle status as number (1/0) or boolean
 	var result struct {
-		Status  interface{}                        `json:"status"` // Can be bool or number
-		Kode    string                             `json:"kode"`
-		Message string                             `json:"message"`
-		Data    []response.MahasiswaLoginResponse  `json:"data"` // Array of data
+		Status  interface{}                       `json:"status"` // Can be bool or number
+		Kode    string                            `json:"kode"`
+		Message string                            `json:"message"`
+		Data    []response.MahasiswaLoginResponse `json:"data"` // Array of data
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
@@ -121,10 +121,10 @@ func (s *APIService) PegawaiLogin(username, password string) (*response.PegawaiL
 
 	// Parse response - handle status as number (1/0) or boolean
 	var result struct {
-		Status  interface{}                       `json:"status"` // Can be bool or number
-		Kode    string                            `json:"kode"`
-		Message string                            `json:"message"`
-		Data    []response.PegawaiLoginResponse   `json:"data"` // Array of data
+		Status  interface{}                     `json:"status"` // Can be bool or number
+		Kode    string                          `json:"kode"`
+		Message string                          `json:"message"`
+		Data    []response.PegawaiLoginResponse `json:"data"` // Array of data
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {

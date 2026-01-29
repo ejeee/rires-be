@@ -3,6 +3,7 @@ package controllers
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"log"
 	"rires-be/internal/dto/request"
 	"rires-be/internal/dto/response"
 	"rires-be/internal/models"
@@ -58,25 +59,33 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 	// 2. Try Mahasiswa or Pegawai via external API
 	// If it's an email format, try Pegawai first
 	if strings.Contains(req.Username, "@") {
+		log.Printf("[Login] Attempting Pegawai login for email: %s", req.Username)
 		// Call external API for pegawai
 		pegawai, err := ctrl.apiService.PegawaiLogin(req.Username, req.Password)
 		if err != nil {
+			log.Printf("[Login] Pegawai login failed: %v", err)
 			return utils.UnauthorizedResponse(c, err.Error())
 		}
 		return ctrl.processPegawaiLoginSuccess(c, pegawai, req.Username)
 	}
 
 	// Try Mahasiswa login (most common case for numeric usernames)
+	log.Printf("[Login] Attempting Mahasiswa login for NIM: %s", req.Username)
 	mahasiswa, err := ctrl.apiService.MahasiswaLogin(req.Username, req.Password)
 	if err == nil {
+		log.Printf("[Login] Mahasiswa login success for NIM: %s", req.Username)
 		return ctrl.processMahasiswaLoginSuccess(c, mahasiswa)
 	}
+	log.Printf("[Login] Mahasiswa login failed for NIM %s: %v", req.Username, err)
 
 	// If Mahasiswa fails, try Pegawai (in case NIP is used instead of email)
+	log.Printf("[Login] Attempting Pegawai login (as backup) for NIP: %s", req.Username)
 	pegawai, errPegawai := ctrl.apiService.PegawaiLogin(req.Username, req.Password)
 	if errPegawai == nil {
+		log.Printf("[Login] Pegawai login success (backup) for NIP: %s", req.Username)
 		return ctrl.processPegawaiLoginSuccess(c, pegawai, req.Username)
 	}
+	log.Printf("[Login] Pegawai login backup failed for NIP %s: %v", req.Username, errPegawai)
 
 	// If all fail, return error
 	return utils.UnauthorizedResponse(c, "Invalid username or password")
